@@ -3,58 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Заказ салатов</title>
+    <title>TeeGu zakaz</title>
 
-    <!-- Иконка ва Манифест (ХАТОЛАР ТУЗАТИЛДИ) -->
-    <link rel="icon" type="image/png" href="icon.png?v=3">
-    <link rel="apple-touch-icon" href="icon.png?v=3">
-    <link rel="manifest" href="data:application/manifest+json,{
-        'name': 'TeeGu zakaz',
-        'short_name': 'TeeGu',
-        'start_url': 'https://alnino18.github.io/ZakazSalad/index.html',
-        'display': 'standalone',
-        'background_color': '#ffffff',
-        'theme_color': '#27ae60',
-        'icons': [{'src': 'icon.png', 'sizes': '512x512', 'type': 'image/png'}]
-    }">
+    <!-- Иконка ва Илова созламалари -->
+    <link rel="icon" type="image/png" href="app-icon.png">
+    <link rel="apple-touch-icon" href="app-icon.png">
+    <link rel="manifest" href='data:application/manifest+json,{"name": "TeeGu zakaz", "short_name": "TeeGu", "start_url": "/ZakazSalad/index.html", "display": "standalone", "background_color": "#ffffff", "theme_color": "#27ae60", "icons": [{"src": "app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]}'>
 
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        body { font-family: -apple-system, sans-serif; background: #F2F2F7; margin: 0; padding-bottom: 100px; }
+        body { font-family: -apple-system, sans-serif; background: #F2F2F7; margin: 0; padding-bottom: 120px; }
         
-        /* Логотип услуби */
-        .header-container { text-align: center; padding: 20px 0; background-color: #ffffff; border-bottom: 2px solid #27ae60; margin-bottom: 10px; }
-        .main-logo { max-width: 200px; height: auto; display: block; margin: 0 auto; }
+        .header-container { text-align: center; padding: 15px 0; background: #fff; border-bottom: 2px solid #27ae60; }
+        .main-logo { max-width: 180px; height: auto; display: block; margin: 0 auto; }
 
-        .header { background: #fff; padding: 12px; position: sticky; top: 0; border-bottom: 1px solid #ccc; z-index: 100; }
-        .shop-select, .search-box { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 10px; font-size: 16px; box-sizing: border-box; }
+        .sticky-header { background: #fff; padding: 10px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #ccc; }
+        .shop-select, .search-box { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 8px; font-size: 16px; box-sizing: border-box; outline: none; }
 
         .row { display: flex; align-items: center; padding: 12px; background: #fff; border-bottom: 0.5px solid #eee; }
-        .name { flex: 2; font-size: 16px; font-weight: 500; }
-        .inputs { flex: 1.8; display: flex; gap: 5px; }
-        .inputs input { width: 65px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 16px; background: #F9F9F9; }
+        .name { flex: 2; font-size: 15px; font-weight: 600; color: #333; }
+        .inputs { flex: 2; display: flex; gap: 5px; justify-content: flex-end; }
         
-        .footer { position: fixed; bottom: 0; width: 100%; padding: 15px; background: rgba(255,255,255,0.9); border-top: 1px solid #ccc; }
-        .btn-send { width: 100%; background: #0088cc; color: #fff; border: none; border-radius: 12px; padding: 18px; font-size: 18px; font-weight: bold; }
+        .inputs input { width: 60px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 16px; background: #f9f9f9; outline: none; }
+        .inputs select { width: 70px; padding: 9px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-size: 14px; outline: none; }
 
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top: 1px solid #ccc; box-sizing: border-box; }
+        .btn-send { width: 100%; background: #0088cc; color: #fff; border: none; border-radius: 15px; padding: 18px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,136,204,0.3); }
+
+        /* PDF Шаблон */
         #pdf-template { position: absolute; left: -9999px; width: 500px; background: white; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        td { border: 1px solid #000; padding: 8px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #000; padding: 10px; text-align: center; font-size: 16px; }
+        th { background: #eee; }
     </style>
 </head>
 <body>
 
 <div class="header-container">
-    <!-- logo.png Гитҳабда борлигига ишонч ҳосил қилинг -->
-    <img src="logo.png" alt="Logo" class="main-logo">
+    <img src="logo.png" class="main-logo">
 </div>
 
-<div class="header">
+<div class="sticky-header">
     <select id="shop" class="shop-select">
         <option>Аския Бозор</option>
         <option>Эко Бозор</option>
@@ -66,20 +60,24 @@
 
 <div id="mainList"></div>
 
-<!-- Telegramga yuborish uchun PDF shablon -->
 <div id="pdf-template">
-    <div id="pdf-shop-name" style="text-align:center; font-weight:bold; margin-bottom:10px;"></div>
-    <table><tbody id="pdf-body"></tbody></table>
+    <h2 id="pdf-shop-name" style="text-align:center;"></h2>
+    <table>
+        <thead>
+            <tr><th>№</th><th>Салат номи</th><th>Миқдори</th></tr>
+        </thead>
+        <tbody id="pdf-body"></tbody>
+    </table>
 </div>
 
 <div class="footer">
-    <button class="btn-send" id="btn" onclick="sendOrder()">ОТПРАВИТЬ</button>
+    <button class="btn-send" id="btn" onclick="sendOrder()">ТЕЛЕГРАМГА ЮБОРИШ</button>
 </div>
 
 <script>
-    // JavaScript қисми ўзгаришсиз қолди
     const BOT_TOKEN = '8691293032:AAGikZsTLffxhHo3_RVCRK3Ol7--oXPIaF8'; 
     const CHAT_ID = '483325961'; 
+
     const salats = ["Ашланфу", "Баклажан перец жареный", "Баклажаны кабачки", "Баклажаны маринованные", "Баклажаны соте", "Баклажаны сухие", "Винегрет", "Витаминка", "Грибное ассорти", "Грибы древесные", "Грибы жареные", "Грибы маринованные", "Грибы шампиньоны", "Грибы шитаки", "Капуста сладкая", "Кочи нипи", "Креветки", "Лечо", "Марковча", "Марковча не крашенная", "Маш", "Морская капуста", "Огурцы", "Перец жареный", "Свёкла", "Соя мясо", "Спаржа", "Стрелки", "Тиби", "Тофу салат", "Фаршированный перец", "Фунчоза", "Хе куриное", "Хе мясное", "Хе рыба", "Хе три буха", "Галовка капуста", "Шпинат", "Армянский капуста", "Дайкон маринованный", "Дайкон салат", "Зверобой", "Капуста кимчи", "Квашеная капуста сладкая", "Маринованный огурцы", "Маринованный помидор", "Редиска чимчи", "Солёные ассорти", "Солёные огурцы", "Солёные памидор", "Чеснок маринованный", "Чимчи", "Женский каприз", "Крабовые", "Мужской каприз", "Оливье", "Чартоги", "Варенка", "Горчица", "Лозижон", "Маченка", "Нори Большой", "Нори Маленький", "Пигodя крахмальные", "Пигodя рисовый", "Спаржа сухая", "Халапено", "Тирой", "Борсик йог", "Гоз йог", "Цяй жареный", "Уксус", "Фунчоза сухая", "Чинпени", "Чипс", "Кукси", "Малосольные огурцы"];
 
     function renderList() {
@@ -88,39 +86,67 @@
             <div class="row" data-n="${name.toLowerCase()}">
                 <div class="name">${name}</div>
                 <div class="inputs">
-                    <input type="number" id="q-${i}" class="q-in" placeholder="0">
+                    <input type="number" id="q-${i}" class="q-in" placeholder="0" inputmode="decimal">
+                    <select id="u-${i}">
+                        <option>кг</option>
+                        <option>шт</option>
+                        <option>ведро</option>
+                    </select>
                 </div>
             </div>
         `).join('');
     }
-    
+
     function filterRows() {
         let val = document.getElementById('search').value.toLowerCase();
-        document.querySelectorAll('.row').forEach(r => r.style.display = r.getAttribute('data-n').includes(val) ? 'flex' : 'none');
+        document.querySelectorAll('.row').forEach(r => {
+            r.style.display = r.getAttribute('data-n').includes(val) ? 'flex' : 'none';
+        });
     }
 
     async function sendOrder() {
+        const btn = document.getElementById('btn');
         const shop = document.getElementById('shop').value;
         const pdfBody = document.getElementById('pdf-body');
         pdfBody.innerHTML = "";
         let count = 0;
+
         salats.forEach((name, i) => {
             let q = document.getElementById(`q-${i}`).value;
-            if (q > 0) { count++; pdfBody.innerHTML += `<tr><td>${name}</td><td>${q}</td></tr>`; }
+            let u = document.getElementById(`u-${i}`).value;
+            if (q > 0) {
+                count++;
+                pdfBody.innerHTML += `<tr><td>${count}</td><td>${name}</td><td>${q} ${u}</td></tr>`;
+            }
         });
+
         if (count === 0) return alert("Миқдор киритинг!");
+
+        btn.innerText = "ЮБОРИЛМОҚДА...";
+        btn.disabled = true;
         document.getElementById('pdf-shop-name').innerText = shop;
-        
-        const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 3 });
-        canvas.toBlob(async (blob) => {
-            const formData = new FormData();
-            formData.append('chat_id', CHAT_ID);
-            formData.append('photo', blob);
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
-            alert("Заказ юборилди!");
-        }, 'image/png');
+
+        try {
+            const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 3 });
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('chat_id', CHAT_ID);
+                formData.append('photo', blob, 'order.png');
+                formData.append('caption', `🏢 Дўкон: ${shop}\n📅 Сана: ${new Date().toLocaleDateString()}`);
+
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+                alert("Заказ Телеграмга юборилди!");
+                location.reload(); 
+            }, 'image/png');
+        } catch (e) {
+            alert("Хатолик: " + e.message);
+            btn.disabled = false;
+            btn.innerText = "ТЕЛЕГРАМГА ЮБОРИШ";
+        }
     }
+
     renderList();
 </script>
+
 </body>
 </html>
