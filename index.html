@@ -27,20 +27,20 @@
         .footer { position: fixed; bottom: 0; width: 100%; padding: 20px; background: rgba(255,255,255,0.95); border-top: 1px solid #ccc; box-sizing: border-box; }
         .btn-send { width: 100%; background: #0088cc; color: #fff; border: none; border-radius: 15px; padding: 18px; font-size: 18px; font-weight: bold; }
 
-        /* ЮБОРИЛАДИГАН РАСМ ДИЗАЙНИ */
+         /* ТЕЛЕГРАМ РАСМИ: TIMES NEW ROMAN */
         #pdf-template { 
             position: absolute; left: -9999px; 
-            width: 800px; background: white; padding: 30px; 
-            font-family: Arial, sans-serif; 
+            width: 850px; background: white; padding: 40px; 
+            font-family: 'Times New Roman', Times, serif; 
         }
-        .pdf-header { text-align: center; font-size: 26px; font-weight: bold; text-decoration: underline; margin-bottom: 20px; }
-        .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        th { border: 1px solid #000; padding: 8px; background: #f0f0f0; font-size: 15px; }
-        td { border: 1px solid #000; padding: 5px; font-size: 13px; font-weight: bold; height: 22px; }
-        .col-name { text-align: left; padding-left: 5px; width: 75%; }
-        .col-val { text-align: center; width: 25%; background: #fafafa; color: #d32f2f; font-size: 15px; }
-        .section-title { text-align: center; background: #e8e8e8; font-weight: bold; border: 1px solid #000; padding: 5px; font-size: 14px; }
+        .pdf-header { text-align: center; font-size: 32px; font-weight: bold; text-decoration: underline; margin-bottom: 25px; color: #000; }
+        .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { border: 2px solid #000; padding: 10px; background: #fdfdfd; font-size: 20px; font-weight: bold; }
+        td { border: 2px solid #000; padding: 8px; font-size: 18px; font-weight: bold; height: 35px; color: #000; }
+        .col-name { text-align: left; padding-left: 10px; width: 65%; }
+        .col-val { text-align: center; width: 35%; font-size: 20px; color: #000; }
+        .section-title { text-align: center; background: #e0e0e0; font-weight: bold; border: 2px solid #000; padding: 8px; font-size: 20px; }
     </style>
 </head>
 <body>
@@ -71,10 +71,10 @@
                 <tbody id="pdf-left"></tbody>
             </table>
         </div>
-        <!-- Ўнг устун (Соления / Маянез / П/р) -->
+        <!-- Ўнг устун ( Маянез салаты / П/р) -->
         <div>
             <table>
-                <thead><tr><th>Категория →</th><th>Заказ</th></tr></thead>
+                <th>Соления →</th><th>Заказ</th></tr></thead>
                 <tbody id="pdf-right"></tbody>
             </table>
         </div>
