@@ -5,82 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>TeeGu zakaz</title>
 
-    <link rel="icon" type="image/png" href="app-icon.png">
-    <link rel="apple-touch-icon" href="app-icon.png">
-    <link rel="manifest" href="manifest.json">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        body { font-family: -apple-system, sans-serif; background: #F2F2F7; margin: 0; padding-bottom: 120px; }
+        /* Телефондаги интерфейс */
+        body { font-family: sans-serif; background: #F2F2F7; margin: 0; padding-bottom: 120px; }
         .header-container { text-align: center; padding: 10px 0; background: #fff; border-bottom: 2px solid #27ae60; }
-        .main-logo { max-width: 150px; height: auto; display: block; margin: 0 auto; }
         .sticky-header { background: #fff; padding: 10px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #ccc; }
-        .shop-select, .search-box { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 8px; font-size: 16px; box-sizing: border-box; outline: none; }
-        
+        .shop-select, .search-box { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #ccc; font-size: 18px; font-weight: bold; box-sizing: border-box; margin-bottom: 5px; }
         .row { display: flex; align-items: center; padding: 12px; background: #fff; border-bottom: 0.5px solid #eee; }
-        .name { flex: 2; font-size: 14px; font-weight: 600; color: #333; }
+        .name { flex: 2; font-size: 16px; font-weight: 700; }
         .inputs { flex: 1.5; display: flex; gap: 5px; justify-content: flex-end; }
-        .inputs input { width: 55px; padding: 8px; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 16px; outline: none; }
-        .inputs select { width: 65px; padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 13px; outline: none; }
-
-        .footer { position: fixed; bottom: 0; width: 100%; padding: 20px; background: rgba(255,255,255,0.95); border-top: 1px solid #ccc; box-sizing: border-box; }
+        .inputs input { width: 60px; padding: 8px; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 18px; }
+        .inputs select { width: 70px; padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 15px; background: white; border-top: 1px solid #ccc; box-sizing: border-box; }
         .btn-send { width: 100%; background: #0088cc; color: #fff; border: none; border-radius: 15px; padding: 18px; font-size: 18px; font-weight: bold; }
 
-                /* ТЕЛЕГРАМ РАСМИ УЧУН КИЧИКРОҚ ШРИФТЛАР */
+        /* ТЕЛЕГРАМ РАСМИ УЧУН (КИЧИК ШРИФТ ВА ҚИЗИЛ ЗАКАЗ) */
         #pdf-template { 
             position: absolute; left: -9999px; 
             width: 850px; background: white; padding: 30px; 
             font-family: 'Times New Roman', Times, serif; 
         }
-        .pdf-header { text-align: center; font-size: 26px; font-weight: bold; margin-bottom: 20px; }
+        .pdf-header { text-align: center; font-size: 24px; font-weight: bold; text-decoration: underline; margin-bottom: 15px; }
         .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         table { width: 100%; border-collapse: collapse; }
-        th { border: 1px solid #000; padding: 6px; background: #fdfdfd; font-size: 16px; font-weight: bold; }
-        td { border: 1px solid #000; padding: 4px; font-size: 15px; height: 26px; color: #000; }
-        .col-name { text-align: left; padding-left: 8px; width: 70%; font-weight: normal; }
-        .col-val { text-align: center; width: 30%; font-size: 15px; font-weight: bold; }
-        .section-title { text-align: center; background: #e0e0e0; font-weight: bold; border: 1px solid #000; padding: 4px; font-size: 17px; }
-
+        th { border: 1px solid #000; padding: 6px; background: #f0f0f0; font-size: 16px; font-weight: bold; }
+        td { border: 1px solid #000; padding: 4px; font-size: 14px; height: 24px; color: #000; font-weight: bold; }
+        .col-name { text-align: left; padding-left: 8px; width: 70%; }
+        
+        /* ЗАКАЗ УСТУНИ ВА ҚИЗИЛ РАНГ */
+        .col-val { 
+            text-align: center; 
+            width: 30%; 
+            font-size: 16px; 
+            color: #FF0000; /* Ёрқин қизил ранг */
+            font-weight: 900; 
+        }
+        
+        .section-title { text-align: center; background: #e0e0e0; font-weight: bold; border: 1px solid #000; padding: 5px; font-size: 16px; }
     </style>
 </head>
 <body>
 
-<div class="header-container">
-    <img src="logo.png" class="main-logo">
-</div>
+<div class="header-container"><img src="logo.png" style="max-width:140px"></div>
 
 <div class="sticky-header">
     <select id="shop" class="shop-select">
-        <option>АСКИЯ БОЗОР</option>
-        <option>ЭКО БОЗОР</option>
-        <option>СЕРГИЛИ БОЗОР</option>
-        <option>СЕРГИЛИ ЯРМАРКА</option>
+        <option>АСКИЯ БОЗОР</option><option>ЭКО БОЗОР</option><option>СЕРГИЛИ БОЗОР</option><option>СЕРГИЛИ ЯРМАРКА</option>
     </select>
     <input type="text" id="search" class="search-box" placeholder="Қидириш..." oninput="filterRows()">
 </div>
 
 <div id="mainList"></div>
 
+<!-- РАСМ ШАБЛОНИ -->
 <div id="pdf-template">
     <div class="pdf-header" id="pdf-shop-title"></div>
     <div class="pdf-grid">
-        <!-- Чап устун (Салатлар) -->
         <div>
-            <table>
-                <thead><tr><th>Салаты →</th><th>Заказ</th></tr></thead>
-                <tbody id="pdf-left"></tbody>
-            </table>
+            <table><thead><tr><th>Салаты →</th><th>Заказ</th></tr></thead><tbody id="pdf-left"></tbody></table>
         </div>
-        <!-- Ўнг устун ( Маянез салаты / П/р) -->
         <div>
-            <table>
-                <thead><th>Соления →</th><th>Заказ</th></tr></thead>
-                <tbody id="pdf-right"></tbody>
-            </table>
+            <table><thead><tr><th>Категория →</th><th>Заказ</th></tr></thead><tbody id="pdf-right"></tbody></table>
         </div>
     </div>
-    <div style="text-align: right; margin-top: 10px; font-style: italic; font-size: 14px;" id="pdf-date"></div>
+    <div style="text-align: right; margin-top: 15px; font-size: 16px; font-weight: bold;" id="pdf-date"></div>
 </div>
 
 <div class="footer">
@@ -94,7 +84,7 @@
     const leftCol = ["Ашланфу", "Баклажан ва дунганский перец жареный", "Баклажаны и кабачки жареные", "Баклажаны маринованные", "Баклажаны соте", "Баклажаны сухие", "Винегрет", "Витаминка", "Грибное ассорти", "Грибы древесные", "Грибы жареные", "Грибы маринованные", "Грибы шампиньоны", "Грибы шитаки", "Капуста сладкая", "Кочи нипи", "Креветки", "Лечо", "Марковча", "Марковча не крашенная", "Маш", "Морская капуста", "Огурцы", "Перец жареный", "Свёкла", "Соя мясо", "Спаржа", "Стрелки", "Тиби", "Тофу салат", "Фаршированный перец", "Фунчоза", "Хе куриное", "Хе мясное", "Хе рыба", "Хе три буха", "Цветная капуста", "Шпинат"];
     
     const rightCol = [
-        "Дайкон маринованный", "Дайкон салат", "Зверобой", "Капуста кимчи", "Квашеная капуста не сладкая", "Квашеная капуста сладкая", "Маринованный огурцы", "Маринованный помидор", "Редиска чимчи", "Солёные ассорти", "Солёные огурцы", "Солёные памидор", "Чеснок маринованный", "Чимчи",
+        {title: "Соления"}, "Дайкон маринованный", "Дайкон салат", "Зверобой", "Капуста кимчи", "Квашеная капуста не сладкая", "Квашеная капуста сладкая", "Маринованный огурцы", "Маринованный помидор", "Редиска чимчи", "Солёные ассорти", "Солёные огурцы", "Солёные памидор", "Чеснок маринованный", "Чимчи",
         {title: "Маянез салатлар"}, "Женский каприз", "Крабовые", "Мужской каприз", "Оливье",
         {title: "П/р"}, "Варенка", "Горчица", "Лозижон", "Маченка", "Нори Большой", "Нори Маленький", "Пигодя крахмальные", "Пигодя рисовый", "Спаржа сухая", "Кукси", "Тирой", "Борсик йоги", "Гоз йоги", "Тяй жареный", "Тяй", "Фунчоза сухая", "Чартоги", "Халапено"
     ];
@@ -104,9 +94,9 @@
         let html = "";
         [...leftCol, ...rightCol].forEach((item) => {
             if(item.title) {
-                html += `<div style="background:#e8e8e8; padding:8px; font-weight:bold; text-align:center;">${item.title}</div>`;
+                html += `<div style="background:#e0e0e0; padding:10px; font-weight:bold; text-align:center; font-size:16px;">${item.title}</div>`;
             } else {
-                html += `<div class="row" data-n="${item.toLowerCase()}"><div class="name">${item}</div><div class="inputs"><input type="number" id="q-${item}" placeholder="0" inputmode="decimal" class="q-in"><select id="u-${item}"><option>кг</option><option>шт</option><option>ведро</option></select></div></div>`;
+                html += `<div class="row" data-n="${item.toLowerCase()}"><div class="name">${item}</div><div class="inputs"><input type="number" id="q-${item}" placeholder="0" inputmode="decimal"><select id="u-${item}"><option>кг</option><option>шт</option><option>ведро</option></select></div></div>`;
             }
         });
         container.innerHTML = html;
