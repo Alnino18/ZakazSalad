@@ -1,0 +1,15 @@
+{
+  "name": "TeeGu zakaz",
+  "short_name": "TeeGu",
+  "start_url": "/ZakazSalad/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#27ae60",
+  "icons": [
+    {
+      "src": "app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
