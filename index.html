@@ -5,42 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>TeeGu zakaz</title>
 
-    <!-- Иконка ва Илова созламалари -->
-    <link rel="icon" type="image/png" href="app-icon.png?v=4">
-    <link rel="apple-touch-icon" href="app-icon.png?v=4">
+    <link rel="icon" type="image/png" href="app-icon.png">
+    <link rel="apple-touch-icon" href="app-icon.png">
     <link rel="manifest" href="manifest.json">
-
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         body { font-family: -apple-system, sans-serif; background: #F2F2F7; margin: 0; padding-bottom: 120px; }
-        
-        .header-container { text-align: center; padding: 15px 0; background: #fff; border-bottom: 2px solid #27ae60; }
-        .main-logo { max-width: 180px; height: auto; display: block; margin: 0 auto; }
-
+        .header-container { text-align: center; padding: 10px 0; background: #fff; border-bottom: 2px solid #27ae60; }
+        .main-logo { max-width: 150px; height: auto; display: block; margin: 0 auto; }
         .sticky-header { background: #fff; padding: 10px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #ccc; }
         .shop-select, .search-box { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 8px; font-size: 16px; box-sizing: border-box; outline: none; }
-
-        .row { display: flex; align-items: center; padding: 12px; background: #fff; border-bottom: 0.5px solid #eee; }
-        .name { flex: 2; font-size: 15px; font-weight: 600; color: #333; }
-        .inputs { flex: 2; display: flex; gap: 5px; justify-content: flex-end; }
         
-        .inputs input { width: 60px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 16px; background: #f9f9f9; outline: none; }
-        .inputs select { width: 70px; padding: 9px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-size: 14px; outline: none; }
+        .row { display: flex; align-items: center; padding: 12px; background: #fff; border-bottom: 0.5px solid #eee; }
+        .name { flex: 2; font-size: 14px; font-weight: 600; color: #333; }
+        .inputs { flex: 1.5; display: flex; gap: 5px; justify-content: flex-end; }
+        .inputs input { width: 55px; padding: 8px; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 16px; outline: none; }
+        .inputs select { width: 65px; padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 13px; outline: none; }
 
-        .footer { position: fixed; bottom: 0; width: 100%; padding: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top: 1px solid #ccc; box-sizing: border-box; }
-        .btn-send { width: 100%; background: #0088cc; color: #fff; border: none; border-radius: 15px; padding: 18px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,136,204,0.3); }
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 20px; background: rgba(255,255,255,0.95); border-top: 1px solid #ccc; box-sizing: border-box; }
+        .btn-send { width: 100%; background: #0088cc; color: #fff; border: none; border-radius: 15px; padding: 18px; font-size: 18px; font-weight: bold; }
 
-        /* PDF Шаблон */
-        #pdf-template { position: absolute; left: -9999px; width: 500px; background: white; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #000; padding: 10px; text-align: center; font-size: 16px; }
-        th { background: #eee; }
+        /* ЮБОРИЛАДИГАН РАСМ ДИЗАЙНИ */
+        #pdf-template { 
+            position: absolute; left: -9999px; 
+            width: 800px; background: white; padding: 30px; 
+            font-family: Arial, sans-serif; 
+        }
+        .pdf-header { text-align: center; font-size: 26px; font-weight: bold; text-decoration: underline; margin-bottom: 20px; }
+        .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th { border: 1px solid #000; padding: 8px; background: #f0f0f0; font-size: 15px; }
+        td { border: 1px solid #000; padding: 5px; font-size: 13px; font-weight: bold; height: 22px; }
+        .col-name { text-align: left; padding-left: 5px; width: 75%; }
+        .col-val { text-align: center; width: 25%; background: #fafafa; color: #d32f2f; font-size: 15px; }
+        .section-title { text-align: center; background: #e8e8e8; font-weight: bold; border: 1px solid #000; padding: 5px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -51,10 +51,10 @@
 
 <div class="sticky-header">
     <select id="shop" class="shop-select">
-        <option>Аския Бозор</option>
-        <option>Эко Бозор</option>
-        <option>Сергили Бозор</option>
-        <option>Сергили Ярмарка</option>
+        <option>АСКИЯ БОЗОР</option>
+        <option>ЭКО БОЗОР</option>
+        <option>СЕРГИЛИ БОЗОР</option>
+        <option>СЕРГИЛИ ЯРМАРКА</option>
     </select>
     <input type="text" id="search" class="search-box" placeholder="Қидириш..." oninput="filterRows()">
 </div>
@@ -62,13 +62,24 @@
 <div id="mainList"></div>
 
 <div id="pdf-template">
-    <h2 id="pdf-shop-name" style="text-align:center;"></h2>
-    <table>
-        <thead>
-            <tr><th>№</th><th>Салат номи</th><th>Миқдори</th></tr>
-        </thead>
-        <tbody id="pdf-body"></tbody>
-    </table>
+    <div class="pdf-header" id="pdf-shop-title"></div>
+    <div class="pdf-grid">
+        <!-- Чап устун (Салатлар) -->
+        <div>
+            <table>
+                <thead><tr><th>Салаты →</th><th>Заказ</th></tr></thead>
+                <tbody id="pdf-left"></tbody>
+            </table>
+        </div>
+        <!-- Ўнг устун (Соления / Маянез / П/р) -->
+        <div>
+            <table>
+                <thead><tr><th>Категория →</th><th>Заказ</th></tr></thead>
+                <tbody id="pdf-right"></tbody>
+            </table>
+        </div>
+    </div>
+    <div style="text-align: right; margin-top: 10px; font-style: italic; font-size: 14px;" id="pdf-date"></div>
 </div>
 
 <div class="footer">
@@ -79,75 +90,86 @@
     const BOT_TOKEN = '8691293032:AAGikZsTLffxhHo3_RVCRK3Ol7--oXPIaF8'; 
     const CHAT_ID = '483325961'; 
 
-    const salats = ["Ашланфу", "Баклажан перец жареный", "Баклажаны кабачки", "Баклажаны маринованные", "Баклажаны соте", "Баклажаны сухие", "Винегрет", "Витаминка", "Грибное ассорти", "Грибы древесные", "Грибы жареные", "Грибы маринованные", "Грибы шампиньоны", "Грибы шитаки", "Капуста сладкая", "Кочи нипи", "Креветки", "Лечо", "Марковча", "Марковча не крашенная", "Маш", "Морская капуста", "Огурцы", "Перец жареный", "Свёкла", "Соя мясо", "Спаржа", "Стрелки", "Тиби", "Тофу салат", "Фаршированный перец", "Фунчоза", "Хе куриное", "Хе мясное", "Хе рыба", "Хе три буха", "Галовка капуста", "Шпинат", "Армянский капуста", "Дайкон маринованный", "Дайкон салат", "Зверобой", "Капуста кимчи", "Квашеная капуста сладкая", "Маринованный огурцы", "Маринованный помидор", "Редиска чимчи", "Солёные ассорти", "Солёные огурцы", "Солёные памидор", "Чеснок маринованный", "Чимчи", "Женский каприз", "Крабовые", "Мужской каприз", "Оливье", "Чартоги", "Варенка", "Горчица", "Лозижон", "Маченка", "Нори Большой", "Нори Маленький", "Пигodя крахмальные", "Пигodя рисовый", "Спаржа сухая", "Халапено", "Тирой", "Борсик йог", "Гоз йог", "Цяй жареный", "Уксус", "Фунчоза сухая", "Чинпени", "Чипс", "Кукси", "Малосольные огурцы"];
+    const leftCol = ["Ашланфу", "Баклажан ва дунганский перец жареный", "Баклажаны и кабачки жареные", "Баклажаны маринованные", "Баклажаны соте", "Баклажаны сухие", "Винегрет", "Витаминка", "Грибное ассорти", "Грибы древесные", "Грибы жареные", "Грибы маринованные", "Грибы шампиньоны", "Грибы шитаки", "Капуста сладкая", "Кочи нипи", "Креветки", "Лечо", "Марковча", "Марковча не крашенная", "Маш", "Морская капуста", "Огурцы", "Перец жареный", "Свёкла", "Соя мясо", "Спаржа", "Стрелки", "Тиби", "Тофу салат", "Фаршированный перец", "Фунчоза", "Хе куриное", "Хе мясное", "Хе рыба", "Хе три буха", "Цветная капуста", "Шпинат"];
+    
+    const rightCol = [
+        {title: "Соления"}, "Дайкон маринованный", "Дайкон салат", "Зверобой", "Капуста кимчи", "Квашеная капуста не сладкая", "Квашеная капуста сладкая", "Маринованный огурцы", "Маринованный помидор", "Редиска чимчи", "Солёные ассорти", "Солёные огурцы", "Солёные памидор", "Чеснок маринованный", "Чимчи",
+        {title: "Маянез салатлар"}, "Женский каприз", "Крабовые", "Мужской каприз", "Оливье",
+        {title: "П/р"}, "Варенка", "Горчица", "Лозижон", "Маченка", "Нори Большой", "Нори Маленький", "Пигодя крахмальные", "Пигодя рисовый", "Спаржа сухая", "Кукси", "Тирой", "Борсик йоги", "Гоз йоги", "Тяй жареный", "Тяй", "Фунчоза сухая", "Чартоги", "Халапено"
+    ];
 
     function renderList() {
         const container = document.getElementById('mainList');
-        container.innerHTML = salats.map((name, i) => `
-            <div class="row" data-n="${name.toLowerCase()}">
-                <div class="name">${name}</div>
-                <div class="inputs">
-                    <input type="number" id="q-${i}" class="q-in" placeholder="0" inputmode="decimal">
-                    <select id="u-${i}">
-                        <option>кг</option>
-                        <option>шт</option>
-                        <option>ведро</option>
-                    </select>
-                </div>
-            </div>
-        `).join('');
+        let html = "";
+        [...leftCol, ...rightCol].forEach((item) => {
+            if(item.title) {
+                html += `<div style="background:#e8e8e8; padding:8px; font-weight:bold; text-align:center;">${item.title}</div>`;
+            } else {
+                html += `<div class="row" data-n="${item.toLowerCase()}"><div class="name">${item}</div><div class="inputs"><input type="number" id="q-${item}" placeholder="0" inputmode="decimal" class="q-in"><select id="u-${item}"><option>кг</option><option>шт</option><option>ведро</option></select></div></div>`;
+            }
+        });
+        container.innerHTML = html;
     }
 
     function filterRows() {
         let val = document.getElementById('search').value.toLowerCase();
-        document.querySelectorAll('.row').forEach(r => {
-            r.style.display = r.getAttribute('data-n').includes(val) ? 'flex' : 'none';
-        });
+        document.querySelectorAll('.row').forEach(r => r.style.display = r.getAttribute('data-n').includes(val) ? 'flex' : 'none');
     }
 
     async function sendOrder() {
         const btn = document.getElementById('btn');
         const shop = document.getElementById('shop').value;
-        const pdfBody = document.getElementById('pdf-body');
-        pdfBody.innerHTML = "";
-        let count = 0;
+        const leftBody = document.getElementById('pdf-left');
+        const rightBody = document.getElementById('pdf-right');
+        
+        leftBody.innerHTML = "";
+        rightBody.innerHTML = "";
+        let hasOrder = false;
 
-        salats.forEach((name, i) => {
-            let q = document.getElementById(`q-${i}`).value;
-            let u = document.getElementById(`u-${i}`).value;
-            if (q > 0) {
-                count++;
-                pdfBody.innerHTML += `<tr><td>${count}</td><td>${name}</td><td>${q} ${u}</td></tr>`;
+        leftCol.forEach(name => {
+            let q = document.getElementById(`q-${name}`).value;
+            let u = document.getElementById(`u-${name}`).value;
+            let val = (q > 0) ? `${q} ${u}` : "";
+            if(q > 0) hasOrder = true;
+            leftBody.innerHTML += `<tr><td class="col-name">${name}</td><td class="col-val">${val}</td></tr>`;
+        });
+
+        rightCol.forEach(item => {
+            if(item.title) {
+                rightBody.innerHTML += `<tr><td colspan="2" class="section-title">${item.title}</td></tr>`;
+            } else {
+                let q = document.getElementById(`q-${item}`).value;
+                let u = document.getElementById(`u-${item}`).value;
+                let val = (q > 0) ? `${q} ${u}` : "";
+                if(q > 0) hasOrder = true;
+                rightBody.innerHTML += `<tr><td class="col-name">${item}</td><td class="col-val">${val}</td></tr>`;
             }
         });
 
-        if (count === 0) return alert("Миқдор киритинг!");
+        if (!hasOrder) return alert("Миқдор киритинг!");
 
         btn.innerText = "ЮБОРИЛМОҚДА...";
         btn.disabled = true;
-        document.getElementById('pdf-shop-name').innerText = shop;
+        document.getElementById('pdf-shop-title').innerText = shop;
+        document.getElementById('pdf-date').innerText = "Сана: " + new Date().toLocaleDateString();
 
         try {
-            const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 3 });
+            const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
             canvas.toBlob(async (blob) => {
                 const formData = new FormData();
                 formData.append('chat_id', CHAT_ID);
                 formData.append('photo', blob, 'order.png');
-                formData.append('caption', `🏢 Дўкон: ${shop}\n📅 Сана: ${new Date().toLocaleDateString()}`);
-
+                formData.append('caption', `📝 Янги заказ: ${shop}`);
                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
-                alert("Заказ Телеграмга юборилди!");
-                location.reload(); 
-            }, 'image/png');
+                alert("Заказ юборилди!");
+                location.reload();
+            });
         } catch (e) {
-            alert("Хатолик: " + e.message);
+            alert("Хатолик юз берди");
             btn.disabled = false;
-            btn.innerText = "ТЕЛЕГРАМГА ЮБОРИШ";
         }
     }
-
     renderList();
 </script>
-
 </body>
 </html>
