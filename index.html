@@ -27,20 +27,21 @@
         .footer { position: fixed; bottom: 0; width: 100%; padding: 20px; background: rgba(255,255,255,0.95); border-top: 1px solid #ccc; box-sizing: border-box; }
         .btn-send { width: 100%; background: #0088cc; color: #fff; border: none; border-radius: 15px; padding: 18px; font-size: 18px; font-weight: bold; }
 
-         /* ТЕЛЕГРАМ РАСМИ: TIMES NEW ROMAN */
+                /* ТЕЛЕГРАМ РАСМИ УЧУН КИЧИКРОҚ ШРИФТЛАР */
         #pdf-template { 
             position: absolute; left: -9999px; 
-            width: 850px; background: white; padding: 40px; 
+            width: 850px; background: white; padding: 30px; 
             font-family: 'Times New Roman', Times, serif; 
         }
-        .pdf-header { text-align: center; font-size: 32px; font-weight: bold; text-decoration: underline; margin-bottom: 25px; color: #000; }
-        .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .pdf-header { text-align: center; font-size: 26px; font-weight: bold; margin-bottom: 20px; }
+        .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         table { width: 100%; border-collapse: collapse; }
-        th { border: 2px solid #000; padding: 10px; background: #fdfdfd; font-size: 20px; font-weight: bold; }
-        td { border: 2px solid #000; padding: 8px; font-size: 18px; font-weight: bold; height: 35px; color: #000; }
-        .col-name { text-align: left; padding-left: 10px; width: 65%; }
-        .col-val { text-align: center; width: 35%; font-size: 20px; color: #000; }
-        .section-title { text-align: center; background: #e0e0e0; font-weight: bold; border: 2px solid #000; padding: 8px; font-size: 20px; }
+        th { border: 1px solid #000; padding: 6px; background: #fdfdfd; font-size: 16px; font-weight: bold; }
+        td { border: 1px solid #000; padding: 4px; font-size: 15px; height: 26px; color: #000; }
+        .col-name { text-align: left; padding-left: 8px; width: 70%; font-weight: normal; }
+        .col-val { text-align: center; width: 30%; font-size: 15px; font-weight: bold; }
+        .section-title { text-align: center; background: #e0e0e0; font-weight: bold; border: 1px solid #000; padding: 4px; font-size: 17px; }
+
     </style>
 </head>
 <body>
@@ -74,7 +75,7 @@
         <!-- Ўнг устун ( Маянез салаты / П/р) -->
         <div>
             <table>
-                <th>Соления →</th><th>Заказ</th></tr></thead>
+                <thead><th>Соления →</th><th>Заказ</th></tr></thead>
                 <tbody id="pdf-right"></tbody>
             </table>
         </div>
@@ -93,7 +94,7 @@
     const leftCol = ["Ашланфу", "Баклажан ва дунганский перец жареный", "Баклажаны и кабачки жареные", "Баклажаны маринованные", "Баклажаны соте", "Баклажаны сухие", "Винегрет", "Витаминка", "Грибное ассорти", "Грибы древесные", "Грибы жареные", "Грибы маринованные", "Грибы шампиньоны", "Грибы шитаки", "Капуста сладкая", "Кочи нипи", "Креветки", "Лечо", "Марковча", "Марковча не крашенная", "Маш", "Морская капуста", "Огурцы", "Перец жареный", "Свёкла", "Соя мясо", "Спаржа", "Стрелки", "Тиби", "Тофу салат", "Фаршированный перец", "Фунчоза", "Хе куриное", "Хе мясное", "Хе рыба", "Хе три буха", "Цветная капуста", "Шпинат"];
     
     const rightCol = [
-        {title: "Соления"}, "Дайкон маринованный", "Дайкон салат", "Зверобой", "Капуста кимчи", "Квашеная капуста не сладкая", "Квашеная капуста сладкая", "Маринованный огурцы", "Маринованный помидор", "Редиска чимчи", "Солёные ассорти", "Солёные огурцы", "Солёные памидор", "Чеснок маринованный", "Чимчи",
+        "Дайкон маринованный", "Дайкон салат", "Зверобой", "Капуста кимчи", "Квашеная капуста не сладкая", "Квашеная капуста сладкая", "Маринованный огурцы", "Маринованный помидор", "Редиска чимчи", "Солёные ассорти", "Солёные огурцы", "Солёные памидор", "Чеснок маринованный", "Чимчи",
         {title: "Маянез салатлар"}, "Женский каприз", "Крабовые", "Мужской каприз", "Оливье",
         {title: "П/р"}, "Варенка", "Горчица", "Лозижон", "Маченка", "Нори Большой", "Нори Маленький", "Пигодя крахмальные", "Пигодя рисовый", "Спаржа сухая", "Кукси", "Тирой", "Борсик йоги", "Гоз йоги", "Тяй жареный", "Тяй", "Фунчоза сухая", "Чартоги", "Халапено"
     ];
