@@ -6,161 +6,654 @@
     <title>TeeGu zakaz</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <style>
-        /* Телефондаги интерфейс */
-        body { font-family: sans-serif; background: #F2F2F7; margin: 0; padding-bottom: 120px; }
-        .header-container { text-align: center; padding: 8px 0; background: #fff; border-bottom: 2px solid #27ae60; }
-        .sticky-header { background: #fff; padding: 8px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #ccc; }
-        .shop-select, .search-box { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 15px; font-weight: bold; box-sizing: border-box; margin-bottom: 5px; }
-        .row { display: flex; align-items: center; padding: 10px; background: #fff; border-bottom: 0.5px solid #eee; }
-        .name { flex: 2; font-size: 14px; font-weight: 700; }
-        .inputs { flex: 1.5; display: flex; gap: 5px; justify-content: flex-end; }
-        .inputs input { width: 60px; padding: 8px; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 14px; }
-        .inputs select { width: 70px; padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
-        .footer { position: fixed; bottom: 0; width: 100%; padding: 13px; background: white; border-top: 1px solid #ccc; box-sizing: border-box; }
-        .btn-send { width: 100%; background: #0088cc; color: #fff; border: none; border-radius: 15px; padding: 10px; font-size: 15px; font-weight: bold; }
+        * { box-sizing: border-box; }
 
-        /* ТЕЛЕГРАМ РАСМИ УЧУН (КИЧИК ШРИФТ ВА ҚИЗИЛ ЗАКАЗ) */
-        #pdf-template { 
-            position: absolute; left: -9999px; 
-            width: 850px; background: white; padding: 30px; 
-            font-family: 'Times New Roman', Times, serif; 
-        }
+        /* ═══ BASE (mobile-first) ══════════════════════════════════════ */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F2F2F7; margin: 0; padding-bottom: 150px; }
+
+        /* ═══ LAYOUT WRAPPER ════════════════════════════════════════════ */
+        .app-layout { max-width: 1400px; margin: 0 auto; }
+
+        /* ═══ HEADER ════════════════════════════════════════════════════ */
+        .header-container { text-align: center; padding: 10px 0; background: #fff; border-bottom: 2px solid #27ae60; }
+        .header-container img { max-width: 130px; }
+
+        .sticky-header { background: #fff; padding: 10px 12px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #ddd; }
+        .search-box { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc; font-size: 15px; font-weight: 500; margin-bottom: 0; }
+        .search-box:focus { outline: none; border-color: #27ae60; }
+
+        /* ═══ SHOP BUTTONS ══════════════════════════════════════════════ */
+        .shop-btn-wrap { display: flex; gap: 5px; margin-bottom: 8px; flex-wrap: wrap; }
+        .shop-btn { flex: 1 1 auto; min-width: 0; padding: 7px 8px; border-radius: 20px; border: 2px solid #27ae60; background: #fff; color: #27ae60; font-size: 11px; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; text-align: center; overflow: hidden; text-overflow: ellipsis; }
+        .shop-btn.active { background: #27ae60; color: #fff; }
+        .shop-btn:hover:not(.active) { background: #f0faf0; }
+        .shop-btn-add { flex: 0 0 auto; padding: 7px 10px; border-radius: 20px; border: 2px dashed #bbb; background: #fafafa; color: #8e8e93; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .shop-btn-add:hover { border-color: #27ae60; color: #27ae60; }
+
+        /* ═══ TAB BAR ════════════════════════════════════════════════════ */
+        .tab-bar { display: flex; background: #fff; border-bottom: 1px solid #ddd; position: sticky; top: 105px; z-index: 99; }
+        .tab-btn { flex: 1; padding: 11px 4px; border: none; background: none; font-size: 13px; font-weight: 600; color: #8e8e93; cursor: pointer; border-bottom: 3px solid transparent; transition: all .2s; }
+        .tab-btn.active { color: #27ae60; border-bottom-color: #27ae60; }
+        .tab-btn:hover:not(.active) { background: #f9f9f9; color: #555; }
+
+        /* ═══ CONTENT AREA ═══════════════════════════════════════════════ */
+        .content-wrap { width: 100%; }
+
+        /* ═══ PRODUCT ROWS ════════════════════════════════════════════════ */
+        .products-grid { display: block; }
+        .row { display: flex; align-items: center; padding: 10px 14px; background: #fff; border-bottom: 0.5px solid #eee; transition: background .1s; }
+        .row:hover { background: #fafff9; }
+        .name { flex: 2; font-size: 14px; font-weight: 700; color: #1a1a1a; padding-right: 8px; }
+        .inputs { flex: 0 0 auto; display: flex; gap: 6px; align-items: center; }
+        .inputs input { width: 70px; padding: 8px; border: 1.5px solid #ddd; border-radius: 8px; text-align: center; font-size: 14px; font-weight: 600; transition: border-color .15s; }
+        .inputs input:focus { outline: none; border-color: #27ae60; }
+        .inputs input:not(:placeholder-shown) { border-color: #27ae60; background: #f0faf0; }
+        .inputs select { padding: 8px 6px; border-radius: 8px; border: 1.5px solid #ddd; font-size: 13px; background: #fff; cursor: pointer; }
+        .section-header { background: #e8f5e9; padding: 10px 14px; font-weight: 700; text-align: center; font-size: 14px; color: #2e7d32; border-bottom: 1px solid #c8e6c9; letter-spacing: .3px; }
+
+        /* ═══ FOOTER ══════════════════════════════════════════════════════ */
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #ddd; padding: 8px 12px; z-index: 98; box-shadow: 0 -2px 12px rgba(0,0,0,.07); }
+        .footer-inner { max-width: 1400px; margin: 0 auto; }
+
+        .totals-bar { display: flex; gap: 6px; margin-bottom: 7px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+        .totals-bar::-webkit-scrollbar { display: none; }
+        .total-chip { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 700; color: #2e7d32; white-space: nowrap; cursor: default; }
+        .total-chip.has-val { background: #27ae60; color: #fff; border-color: #27ae60; }
+
+        .btn-row { display: flex; gap: 8px; }
+        .btn-send { flex: 3; background: #0088cc; color: #fff; border: none; border-radius: 14px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background .15s; }
+        .btn-send:hover { background: #006faa; }
+        .btn-send:disabled { background: #aaa; cursor: not-allowed; }
+        .btn-draft { flex: 1; background: #ff9500; color: #fff; border: none; border-radius: 14px; padding: 13px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-draft:hover { background: #e08600; }
+        .btn-clear { flex: 0 0 50px; background: #ff3b30; color: #fff; border: none; border-radius: 14px; padding: 13px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .btn-clear:hover { background: #d62c22; }
+
+        /* ═══ PAGES ════════════════════════════════════════════════════════ */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* ═══ HISTORY ══════════════════════════════════════════════════════ */
+        .hist-grid { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 14px; }
+        .hist-card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+        .hist-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .hist-shop { font-weight: 700; font-size: 15px; color: #1a1a1a; }
+        .hist-date { font-size: 12px; color: #8e8e93; }
+        .hist-items { font-size: 13px; color: #444; line-height: 1.9; }
+        .hist-count { background: #e8f5e9; color: #27ae60; border-radius: 10px; padding: 3px 10px; font-size: 12px; font-weight: 700; }
+        .hist-empty { text-align: center; padding: 80px 20px; color: #8e8e93; font-size: 15px; }
+        .btn-load-hist { background: #e8f5e9; border: none; color: #27ae60; border-radius: 10px; padding: 7px 16px; font-size: 13px; font-weight: 600; margin-top: 10px; cursor: pointer; }
+        .btn-load-hist:hover { background: #d0f0d8; }
+        .btn-del-hist { background: #fff0f0; border: none; color: #ff3b30; border-radius: 10px; padding: 7px 16px; font-size: 13px; font-weight: 600; margin-top: 10px; margin-left: 6px; cursor: pointer; }
+        .btn-del-hist:hover { background: #ffe0de; }
+
+        /* ═══ STATISTICS ════════════════════════════════════════════════════ */
+        .stat-section { margin: 14px; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+        .stat-title { font-size: 12px; font-weight: 700; color: #8e8e93; text-transform: uppercase; padding: 12px 16px 8px; letter-spacing: .5px; border-bottom: 1px solid #f0f0f0; }
+        .stat-row { display: flex; align-items: center; padding: 11px 16px; border-bottom: 0.5px solid #f5f5f5; }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-name { font-size: 14px; color: #1a1a1a; min-width: 0; flex: 1; padding-right: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .stat-bar-wrap { flex: 2; margin: 0 10px; height: 7px; background: #eee; border-radius: 4px; overflow: hidden; }
+        .stat-bar { height: 100%; background: #27ae60; border-radius: 4px; transition: width .6s ease; }
+        .stat-count { font-size: 13px; font-weight: 700; color: #27ae60; min-width: 60px; text-align: right; white-space: nowrap; }
+        .stat-empty { text-align: center; padding: 80px 20px; color: #8e8e93; font-size: 15px; }
+
+        /* ═══ MODAL ══════════════════════════════════════════════════════════ */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 999; align-items: flex-end; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal-sheet { background: #fff; width: 100%; max-width: 560px; border-radius: 20px 20px 0 0; padding: 24px 20px 30px; max-height: 85vh; overflow-y: auto; }
+        .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 18px; text-align: center; }
+        .modal-input { width: 100%; padding: 13px; border: 1.5px solid #ddd; border-radius: 12px; font-size: 15px; margin-bottom: 10px; }
+        .modal-input:focus { outline: none; border-color: #27ae60; }
+        .modal-btn-add { width: 100%; background: #27ae60; color: #fff; border: none; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+        .modal-btn-add:hover { background: #229954; }
+        .modal-btn-cancel { width: 100%; background: #f2f2f7; color: #333; border: none; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .modal-btn-cancel:hover { background: #e5e5ea; }
+        .shop-manage-list { margin-bottom: 14px; }
+        .shop-manage-row { display: flex; align-items: center; padding: 11px 0; border-bottom: 0.5px solid #eee; }
+        .shop-manage-name { flex: 1; font-size: 15px; font-weight: 600; }
+        .shop-manage-del { background: #fff0f0; border: none; color: #ff3b30; border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .modal-section-title { font-size: 12px; font-weight: 700; color: #8e8e93; text-transform: uppercase; margin: 14px 0 8px; letter-spacing: .4px; }
+
+        /* ═══ PDF TEMPLATE ═══════════════════════════════════════════════════ */
+        #pdf-template { position: absolute; left: -9999px; width: 850px; background: white; padding: 30px; font-family: 'Times New Roman', Times, serif; }
         .pdf-header { text-align: center; font-size: 24px; font-weight: bold; text-decoration: underline; margin-bottom: 15px; }
         .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         table { width: 100%; border-collapse: collapse; }
         th { border: 1px solid #000; padding: 6px; background: #f0f0f0; font-size: 16px; font-weight: bold; }
         td { border: 1px solid #000; padding: 4px; font-size: 14px; height: 24px; color: #000; font-weight: bold; }
         .col-name { text-align: left; padding-left: 8px; width: 70%; }
-        
-        /* ЗАКАЗ УСТУНИ ВА ҚИЗИЛ РАНГ */
-        .col-val { 
-            text-align: center; 
-            width: 30%; 
-            font-size: 20px; 
-            color: #4682B4; /* Ёрқин қизил ранг */
-            font-weight: 900; 
-        }
-        
+        .col-val { text-align: center; width: 30%; font-size: 20px; color: #4682B4; font-weight: 900; }
         .section-title { text-align: center; background: #e0e0e0; font-weight: bold; border: 1px solid #000; padding: 5px; font-size: 16px; }
+
+        /* ═══ TABLET (≥640px) ═════════════════════════════════════════════════ */
+        @media (min-width: 640px) {
+            .header-container img { max-width: 150px; }
+            .sticky-header { padding: 12px 20px; }
+            .tab-bar { top: 112px; }
+            .hist-grid { grid-template-columns: 1fr 1fr; }
+            .row { padding: 11px 20px; }
+            .name { font-size: 15px; }
+            .inputs input { width: 80px; }
+            .footer { padding: 10px 20px; }
+            .btn-row { gap: 10px; }
+            .btn-send { font-size: 16px; padding: 14px; }
+        }
+
+        /* ═══ DESKTOP (≥1024px) ═══════════════════════════════════════════════ */
+        @media (min-width: 1024px) {
+            body { padding-bottom: 0; }
+
+            .header-container { padding: 14px 0; }
+            .header-container img { max-width: 160px; }
+
+            /* Fixed left sidebar for header+tabs */
+            .sticky-header { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; border-right: 1px solid #ddd; border-bottom: none; padding: 20px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 0; z-index: 100; }
+            .shop-btn-wrap { flex-wrap: wrap; overflow-x: visible; gap: 6px; }
+            .shop-btn, .shop-btn-add { font-size: 13px; }
+            .search-box { margin-top: 8px; }
+
+            .tab-bar { position: fixed; left: 280px; right: 0; top: 0; border-left: none; border-bottom: 1px solid #ddd; z-index: 99; padding: 0 20px; }
+            .tab-btn { font-size: 14px; padding: 14px 10px; }
+
+            /* Main content offset */
+            .app-layout { padding-left: 280px; padding-top: 50px; }
+
+            /* Products in 2-column grid on desktop */
+            .products-grid { display: grid; grid-template-columns: 1fr 1fr; }
+            .section-header { grid-column: 1 / -1; font-size: 15px; padding: 12px 20px; }
+            .row { padding: 10px 20px; border-bottom: 0.5px solid #eee; }
+            .row:hover { background: #fafff9; }
+            .name { font-size: 14px; }
+
+            /* History 3-col */
+            .hist-grid { grid-template-columns: 1fr 1fr 1fr; padding: 20px; }
+
+            /* Stats wider */
+            .stat-section { margin: 20px; }
+            .stat-name { font-size: 15px; }
+
+            /* Footer becomes a bottom bar only in content area */
+            .footer { left: 280px; padding: 10px 24px; }
+            .footer-inner { max-width: none; }
+            .btn-send { font-size: 16px; padding: 14px 20px; }
+            .btn-draft, .btn-clear { font-size: 14px; }
+
+            /* Modal centered on desktop */
+            .modal-overlay { align-items: center; }
+            .modal-sheet { border-radius: 20px; max-width: 500px; max-height: 80vh; }
+        }
+
+        /* ═══ WIDE DESKTOP (≥1280px) ══════════════════════════════════════════ */
+        @media (min-width: 1280px) {
+            .sticky-header { width: 320px; }
+            .tab-bar { left: 320px; }
+            .app-layout { padding-left: 320px; }
+            .footer { left: 320px; }
+            .products-grid { grid-template-columns: 1fr 1fr 1fr; }
+        }
     </style>
 </head>
 <body>
 
 <div class="header-container"><img src="logo.png" style="max-width:140px"></div>
 
+<div class="app-layout">
+
 <div class="sticky-header">
-    <select id="shop" class="shop-select">
-        <option>АСКИЯ БОЗОР</option><option>ЭКО БОЗОР</option><option>СЕРГИЛИ БОЗОР</option><option>СЕРГИЛИ ЯРМАРКА</option>
-    </select>
-    <input type="text" id="search" class="search-box" placeholder="Қидириш..." oninput="filterRows()">
+    <div class="shop-btn-wrap" id="shopBtns"></div>
+    <input type="text" id="search" class="search-box" placeholder="🔍 Қидириш..." oninput="filterRows()">
 </div>
 
-<div id="mainList"></div>
+<!-- SHOP MODAL -->
+<div class="modal-overlay" id="shopModal" onclick="closeShopModal(event)">
+    <div class="modal-sheet">
+        <div class="modal-title">🏪 Бозорларни бошқариш</div>
+        <div class="modal-section-title">Янги бозор қўшиш</div>
+        <input class="modal-input" id="newShopInput" placeholder="Бозор номи (масалан: ЧИЛОНЗОР БОЗОР)" maxlength="40">
+        <button class="modal-btn-add" onclick="addShop()">➕ Қўшиш</button>
+        <div class="modal-section-title">Мавжуд бозорлар</div>
+        <div class="shop-manage-list" id="shopManageList"></div>
+        <button class="modal-btn-cancel" onclick="closeShopModal()">Ёпиш</button>
+    </div>
+</div>
 
-<!-- РАСМ ШАБЛОНИ -->
+<!-- TAB BAR -->
+<div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('order')">📋 Заказ</button>
+    <button class="tab-btn" onclick="switchTab('history')" id="tab-hist">📦 Тарих</button>
+    <button class="tab-btn" onclick="switchTab('stats')">📊 Статистика</button>
+</div>
+
+<!-- ORDER PAGE -->
+<div class="page active" id="page-order">
+    <div class="products-grid" id="mainList"></div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div class="page" id="page-history">
+    <div class="hist-grid" id="histList"></div>
+</div>
+
+<!-- STATS PAGE -->
+<div class="page" id="page-stats">
+    <div id="statsList"></div>
+</div>
+
+</div><!-- /app-layout -->
+
+<!-- PDF TEMPLATE -->
 <div id="pdf-template">
     <div class="pdf-header" id="pdf-shop-title"></div>
     <div class="pdf-grid">
-        <div>
-            <table><thead><tr><th>Салаты →</th><th>Заказ</th></tr></thead><tbody id="pdf-left"></tbody></table>
-        </div>
-        <div>
-            <table><thead><tr><th>Соления →</th><th>Заказ</th></tr></thead><tbody id="pdf-right"></tbody></table>
-        </div>
+        <div><table><thead><tr><th>Салаты →</th><th>Заказ</th></tr></thead><tbody id="pdf-left"></tbody></table></div>
+        <div><table><thead><tr><th>Соления →</th><th>Заказ</th></tr></thead><tbody id="pdf-right"></tbody></table></div>
     </div>
     <div style="text-align: right; margin-top: 15px; font-size: 16px; font-weight: bold;" id="pdf-date"></div>
 </div>
 
 <div class="footer">
-    <button class="btn-send" id="btn" onclick="sendOrder()">ТЕЛЕГРАМГА ЮБОРИШ</button>
+    <div class="footer-inner">
+    <!-- TOTALS BAR -->
+    <div class="totals-bar" id="totalsBar">
+        <div class="total-chip" id="chip-total">Жами: 0 та</div>
+        <div class="total-chip" id="chip-kg">кг: 0</div>
+        <div class="total-chip" id="chip-sht">шт: 0</div>
+        <div class="total-chip" id="chip-vedro">ведро: 0</div>
+    </div>
+    <div class="btn-row">
+        <button class="btn-send" id="btn" onclick="sendOrder()">✈️ ТЕЛЕГРАМГА ЮБОРИШ</button>
+        <button class="btn-draft" onclick="saveDraft()">💾 Черновик</button>
+        <button class="btn-clear" onclick="clearAll()">🗑</button>
+    </div>
+    </div>
 </div>
 
 <script>
-    const BOT_TOKEN = '8691293032:AAGikZsTLffxhHo3_RVCRK3Ol7--oXPIaF8'; 
-    const CHAT_ID = '483325961'; 
+const BOT_TOKEN = '8691293032:AAGikZsTLffxhHo3_RVCRK3Ol7--oXPIaF8'; 
+const CHAT_ID = '483325961';
 
-    const leftCol = ["Ашланфу", "Баклажан и перец жареный", "Баклажаны и кабачки жареные", "Баклажаны маринованные", "Баклажаны соте", "Баклажаны сухие", "Винегрет", "Витаминка", "Грибное ассорти", "Грибы древесные", "Грибы жареные", "Грибы маринованные", "Грибы шампиньоны", "Грибы шитаки", "Капуста сладкая", "Кочи нипи", "Креветки", "Лечо", "Марковча", "Марковча не крашенная", "Маш", "Морская капуста", "Огурцы", "Перец жареный", "Свёкла", "Соя мясо", "Спаржа", "Стрелки", "Тиби", "Тофу салат", "Фаршированный перец", "Фунчоза", "Хе куриное", "Хе мясное", "Хе рыба", "Хе три буха", "Цветная капуста", "Шпинат"];
-    
-    const rightCol = [
-        "Дайкон маринованный", "Дайкон салат", "Зверобой", "Капуста кимчи", "Квашеная капуста не сладкая", "Квашеная капуста сладкая", "Маринованный огурцы", "Маринованный помидор", "Редиска чимчи", "Солёные ассорти", "Солёные огурцы", "Солёные памидор", "Чеснок маринованный", "Чимчи",
-        {title: "Маянез салатлар"}, "Женский каприз", "Крабовые", "Мужской каприз", "Оливье",
-        {title: "П/р"}, "Варенка", "Горчица", "Лозижон", "Маченка", "Нори Большой", "Нори Маленький", "Пигодя крахмальные", "Пигодя рисовый", "Спаржа сухая", "Кукси", "Тирой", "Борсик йоги", "Гоз йоги", "Тяй жареный", "Тяй", "Фунчоза сухая", "Чартоги", "Халапено"
-    ];
+const DEFAULT_SHOPS = ["АСКИЯ БОЗОР","ЭКО БОЗОР","СЕРГИЛИ БОЗОР","СЕРГИЛИ ЯРМАРКА"];
+let selectedShop = '';
 
-    function renderList() {
-        const container = document.getElementById('mainList');
-        let html = "";
-        [...leftCol, ...rightCol].forEach((item) => {
-            if(item.title) {
-                html += `<div style="background:#e0e0e0; padding:10px; font-weight:bold; text-align:center; font-size:16px;">${item.title}</div>`;
-            } else {
-                html += `<div class="row" data-n="${item.toLowerCase()}"><div class="name">${item}</div><div class="inputs"><input type="number" id="q-${item}" placeholder="0" inputmode="decimal"><select id="u-${item}"><option>кг</option><option>шт</option><option>ведро</option></select></div></div>`;
-            }
-        });
-        container.innerHTML = html;
+// ─── SHOP MANAGEMENT ────────────────────────────────────────────────
+function getShops() {
+    const raw = localStorage.getItem('shops');
+    return raw ? JSON.parse(raw) : [...DEFAULT_SHOPS];
+}
+function saveShops(list) {
+    localStorage.setItem('shops', JSON.stringify(list));
+}
+function getSelectedShop() {
+    return selectedShop || getShops()[0] || '';
+}
+function renderShopBtns() {
+    const shops = getShops();
+    const wrap = document.getElementById('shopBtns');
+    let html = shops.map(s =>
+        `<button class="shop-btn${s === getSelectedShop() ? ' active' : ''}" onclick="selectShop('${s.replace(/'/g,"\\'")}')">🏪 ${s}</button>`
+    ).join('');
+    html += `<button class="shop-btn-add" onclick="openShopModal()">➕ Бошқариш</button>`;
+    wrap.innerHTML = html;
+}
+function selectShop(name) {
+    selectedShop = name;
+    renderShopBtns();
+}
+function openShopModal() {
+    renderShopManageList();
+    document.getElementById('shopModal').classList.add('open');
+    document.getElementById('newShopInput').value = '';
+}
+function closeShopModal(e) {
+    if(!e || e.target === document.getElementById('shopModal')) {
+        document.getElementById('shopModal').classList.remove('open');
     }
+}
+function renderShopManageList() {
+    const shops = getShops();
+    const container = document.getElementById('shopManageList');
+    if(shops.length === 0) { container.innerHTML = '<div style="color:#8e8e93;font-size:14px;padding:10px 0">Бозор йўқ</div>'; return; }
+    container.innerHTML = shops.map((s, i) =>
+        `<div class="shop-manage-row">
+            <div class="shop-manage-name">🏪 ${s}</div>
+            ${shops.length > 1 ? `<button class="shop-manage-del" onclick="deleteShop(${i})">Ўчириш</button>` : ''}
+        </div>`
+    ).join('');
+}
+function addShop() {
+    const val = document.getElementById('newShopInput').value.trim().toUpperCase();
+    if(!val) return alert('Ном киритинг!');
+    const shops = getShops();
+    if(shops.includes(val)) return alert('Бу бозор аллақачон мавжуд!');
+    shops.push(val);
+    saveShops(shops);
+    selectedShop = val;
+    renderShopBtns();
+    renderShopManageList();
+    document.getElementById('newShopInput').value = '';
+}
+function deleteShop(idx) {
+    const shops = getShops();
+    if(shops.length <= 1) return alert('Камида 1 та бозор бўлиши керак!');
+    if(!confirm(`"${shops[idx]}" ни ўчиришни тасдиқлайсизми?`)) return;
+    if(selectedShop === shops[idx]) selectedShop = shops[idx === 0 ? 1 : 0];
+    shops.splice(idx, 1);
+    saveShops(shops);
+    renderShopBtns();
+    renderShopManageList();
+}
 
-    function filterRows() {
-        let val = document.getElementById('search').value.toLowerCase();
-        document.querySelectorAll('.row').forEach(r => r.style.display = r.getAttribute('data-n').includes(val) ? 'flex' : 'none');
-    }
+const leftCol = ["Ашланфу","Баклажан и перец жареный","Баклажаны и кабачки жареные","Баклажаны маринованные","Баклажаны соте","Баклажаны сухие","Винегрет","Витаминка","Грибное ассорти","Грибы древесные","Грибы жареные","Грибы маринованные","Грибы шампиньоны","Грибы шитаки","Капуста сладкая","Кочи нипи","Креветки","Лечо","Марковча","Марковча не крашенная","Маш","Морская капуста","Огурцы","Перец жареный","Свёкла","Соя мясо","Спаржа","Стрелки","Тиби","Тофу салат","Фаршированный перец","Фунчоза","Хе куриное","Хе мясное","Хе рыба","Хе три буха","Цветная капуста","Шпинат"];
 
-    async function sendOrder() {
-        const btn = document.getElementById('btn');
-        const shop = document.getElementById('shop').value;
-        const leftBody = document.getElementById('pdf-left');
-        const rightBody = document.getElementById('pdf-right');
-        
-        leftBody.innerHTML = "";
-        rightBody.innerHTML = "";
-        let hasOrder = false;
+const rightCol = ["Дайкон маринованный","Дайкон салат","Зверобой","Капуста кимчи","Квашеная капуста не сладкая","Квашеная капуста сладкая","Маринованный огурцы","Маринованный помидор","Редиска чимчи","Солёные ассорти","Солёные огурцы","Солёные памидор","Чеснок маринованный","Чимчи",{title:"Маянез салатлар"},"Женский каприз","Крабовые","Мужской каприз","Оливье",{title:"П/р"},"Варенка","Горчица","Лозижон","Маченка","Нори Большой","Нори Маленький","Пигодя крахмальные","Пигодя рисовый","Спаржа сухая","Кукси","Тирой","Борсик йоги","Гоз йоги","Тяй жареный","Тяй","Фунчоза сухая","Чартоги","Халапено"];
 
-        leftCol.forEach(name => {
-            let q = document.getElementById(`q-${name}`).value;
-            let u = document.getElementById(`u-${name}`).value;
-            let val = (q > 0) ? `${q} ${u}` : "";
-            if(q > 0) hasOrder = true;
-            leftBody.innerHTML += `<tr><td class="col-name">${name}</td><td class="col-val">${val}</td></tr>`;
-        });
-
-        rightCol.forEach(item => {
-            if(item.title) {
-                rightBody.innerHTML += `<tr><td colspan="2" class="section-title">${item.title}</td></tr>`;
-            } else {
-                let q = document.getElementById(`q-${item}`).value;
-                let u = document.getElementById(`u-${item}`).value;
-                let val = (q > 0) ? `${q} ${u}` : "";
-                if(q > 0) hasOrder = true;
-                rightBody.innerHTML += `<tr><td class="col-name">${item}</td><td class="col-val">${val}</td></tr>`;
-            }
-        });
-
-        if (!hasOrder) return alert("Миқдор киритинг!");
-
-        btn.innerText = "ЮБОРИЛМОҚДА...";
-        btn.disabled = true;
-        document.getElementById('pdf-shop-title').innerText = shop;
-        document.getElementById('pdf-date').innerText = "Сана: " + new Date().toLocaleDateString();
-
-        try {
-            const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
-            canvas.toBlob(async (blob) => {
-                const formData = new FormData();
-                formData.append('chat_id', CHAT_ID);
-                formData.append('photo', blob, 'order.png');
-                formData.append('caption', `📝 Янги заказ: ${shop}`);
-                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
-                alert("Заказ юборилди!");
-                location.reload();
-            });
-        } catch (e) {
-            alert("Хатолик юз берди");
-            btn.disabled = false;
+// ─── RENDER ──────────────────────────────────────────────────────────
+function renderList() {
+    const container = document.getElementById('mainList');
+    let html = `<div class="section-header">🥗 Салатлар</div>`;
+    leftCol.forEach(item => {
+        html += `<div class="row" data-n="${item.toLowerCase()}"><div class="name">${item}</div><div class="inputs"><input type="number" id="q-${item}" placeholder="0" inputmode="decimal" oninput="updateTotals()"><select id="u-${item}"><option>кг</option><option>шт</option><option>ведро</option></select></div></div>`;
+    });
+    html += `<div class="section-header">🥒 Соления ва бошқалар</div>`;
+    rightCol.forEach(item => {
+        if(item.title) {
+            html += `<div style="background:#f5f5f5; padding:8px 16px; font-weight:600; font-size:13px; color:#555; border-bottom:0.5px solid #eee; grid-column: 1 / -1;">— ${item.title} —</div>`;
+        } else {
+            html += `<div class="row" data-n="${item.toLowerCase()}"><div class="name">${item}</div><div class="inputs"><input type="number" id="q-${item}" placeholder="0" inputmode="decimal" oninput="updateTotals()"><select id="u-${item}"><option>кг</option><option>шт</option><option>ведро</option></select></div></div>`;
         }
+    });
+    container.innerHTML = html;
+    loadDraftIfExists();
+}
+
+function filterRows() {
+    const val = document.getElementById('search').value.toLowerCase();
+    document.querySelectorAll('#page-order .row').forEach(r => {
+        r.style.display = r.getAttribute('data-n').includes(val) ? 'flex' : 'none';
+    });
+}
+
+// ─── TOTALS ──────────────────────────────────────────────────────────
+function updateTotals() {
+    let total = 0, kg = 0, sht = 0, vedro = 0;
+    getAllItems().forEach(name => {
+        const q = parseFloat(document.getElementById(`q-${name}`)?.value) || 0;
+        if(q > 0) {
+            total++;
+            const u = document.getElementById(`u-${name}`)?.value;
+            if(u === 'кг') kg += q;
+            else if(u === 'шт') sht += q;
+            else if(u === 'ведро') vedro += q;
+        }
+    });
+    const setChip = (id, val, label, show) => {
+        const el = document.getElementById(id);
+        el.textContent = label;
+        el.classList.toggle('has-val', show);
+    };
+    setChip('chip-total', total, `Жами: ${total} та`, total > 0);
+    setChip('chip-kg', kg, `кг: ${kg % 1 === 0 ? kg : kg.toFixed(1)}`, kg > 0);
+    setChip('chip-sht', sht, `шт: ${sht}`, sht > 0);
+    setChip('chip-vedro', vedro, `ведро: ${vedro}`, vedro > 0);
+}
+
+function getAllItems() {
+    return [...leftCol, ...rightCol.filter(i => !i.title)];
+}
+
+// ─── DRAFT ───────────────────────────────────────────────────────────
+function saveDraft() {
+    const shop = getSelectedShop();
+    const data = {};
+    getAllItems().forEach(name => {
+        const q = document.getElementById(`q-${name}`)?.value;
+        const u = document.getElementById(`u-${name}`)?.value;
+        if(q > 0) data[name] = { q, u };
+    });
+    if(Object.keys(data).length === 0) return alert('Миқдор киритинг!');
+    localStorage.setItem('draft', JSON.stringify({ shop, data, time: new Date().toISOString() }));
+    // Update draft badge
+    document.querySelector('.btn-draft').textContent = '💾 Черновик ✓';
+    setTimeout(() => document.querySelector('.btn-draft').textContent = '💾 Черновик', 2000);
+}
+
+function loadDraftIfExists() {
+    const raw = localStorage.getItem('draft');
+    if(!raw) return;
+    const draft = JSON.parse(raw);
+    const age = (Date.now() - new Date(draft.time)) / 60000; // minutes
+    if(age > 120) { localStorage.removeItem('draft'); return; } // 2 soat o'tsa o'chir
+    if(!confirm(`💾 Черновик топилди (${Math.round(age)} дақиқа олдин — ${draft.shop})\nЮклаш?`)) return;
+    selectedShop = draft.shop;
+    renderShopBtns();
+    getAllItems().forEach(name => {
+        if(draft.data[name]) {
+            const qEl = document.getElementById(`q-${name}`);
+            const uEl = document.getElementById(`u-${name}`);
+            if(qEl) qEl.value = draft.data[name].q;
+            if(uEl) uEl.value = draft.data[name].u;
+        }
+    });
+    localStorage.removeItem('draft');
+    updateTotals();
+}
+
+function clearAll() {
+    if(!confirm('Ҳаммани тозалашни хоҳлайсизми?')) return;
+    getAllItems().forEach(name => {
+        const el = document.getElementById(`q-${name}`);
+        if(el) el.value = '';
+    });
+    updateTotals();
+}
+
+// ─── HISTORY ─────────────────────────────────────────────────────────
+function saveToHistory(shop, items) {
+    const raw = localStorage.getItem('orderHistory');
+    const hist = raw ? JSON.parse(raw) : [];
+    hist.unshift({ shop, items, time: new Date().toISOString(), id: Date.now() });
+    if(hist.length > 30) hist.pop(); // max 30
+    localStorage.setItem('orderHistory', JSON.stringify(hist));
+    updateHistBadge();
+}
+
+function updateHistBadge() {
+    const raw = localStorage.getItem('orderHistory');
+    const hist = raw ? JSON.parse(raw) : [];
+    const btn = document.getElementById('tab-hist');
+    btn.textContent = hist.length > 0 ? `📦 Тарих (${hist.length})` : '📦 Тарих';
+}
+
+function renderHistory() {
+    const raw = localStorage.getItem('orderHistory');
+    const hist = raw ? JSON.parse(raw) : [];
+    const container = document.getElementById('histList');
+    if(hist.length === 0) {
+        container.innerHTML = `<div class="hist-empty" style="grid-column:1/-1">📭 Тарих бўш<br><small>Заказ юборганингиздан сўнг бу ерда кўринади</small></div>`;
+        return;
     }
-    renderList();
+    container.innerHTML = hist.map(h => {
+        const d = new Date(h.time);
+        const dateStr = `${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        const itemLines = h.items.slice(0, 5).map(i => `${i.name}: <b>${i.q} ${i.u}</b>`).join('<br>');
+        const more = h.items.length > 5 ? `<br><i>…яна ${h.items.length - 5} та</i>` : '';
+        return `<div class="hist-card">
+            <div class="hist-card-header">
+                <span class="hist-shop">🏪 ${h.shop}</span>
+                <span class="hist-count">${h.items.length} та</span>
+            </div>
+            <div class="hist-date">🕐 ${dateStr}</div>
+            <div class="hist-items" style="margin-top:8px">${itemLines}${more}</div>
+            <div>
+                <button class="btn-load-hist" onclick="loadFromHistory(${h.id})">📋 Юклаш</button>
+                <button class="btn-del-hist" onclick="deleteHistory(${h.id})">🗑 Ўчириш</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function loadFromHistory(id) {
+    const raw = localStorage.getItem('orderHistory');
+    const hist = JSON.parse(raw);
+    const entry = hist.find(h => h.id === id);
+    if(!entry) return;
+    if(!confirm(`"${entry.shop}" заказини юклашни хоҳлайсизми?`)) return;
+    clearAll();
+    selectedShop = entry.shop;
+    renderShopBtns();
+    entry.items.forEach(item => {
+        const qEl = document.getElementById(`q-${item.name}`);
+        const uEl = document.getElementById(`u-${item.name}`);
+        if(qEl) qEl.value = item.q;
+        if(uEl) uEl.value = item.u;
+    });
+    switchTab('order');
+    updateTotals();
+}
+
+function deleteHistory(id) {
+    if(!confirm('Ўчиришни тасдиқлайсизми?')) return;
+    const raw = localStorage.getItem('orderHistory');
+    let hist = JSON.parse(raw);
+    hist = hist.filter(h => h.id !== id);
+    localStorage.setItem('orderHistory', JSON.stringify(hist));
+    renderHistory();
+    updateHistBadge();
+}
+
+// ─── STATISTICS ──────────────────────────────────────────────────────
+function renderStats() {
+    const raw = localStorage.getItem('orderHistory');
+    const hist = raw ? JSON.parse(raw) : [];
+    const container = document.getElementById('statsList');
+    if(hist.length === 0) {
+        container.innerHTML = `<div class="stat-empty">📊 Статистика учун камида 1 та заказ юборинг</div>`;
+        return;
+    }
+
+    // Count by item
+    const counts = {};
+    const kgTotals = {};
+    hist.forEach(h => {
+        h.items.forEach(item => {
+            counts[item.name] = (counts[item.name] || 0) + 1;
+            if(item.u === 'кг') kgTotals[item.name] = (kgTotals[item.name] || 0) + parseFloat(item.q);
+        });
+    });
+
+    // Top items
+    const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+    const maxCount = sorted[0]?.[1] || 1;
+
+    // By shop
+    const shopCounts = {};
+    hist.forEach(h => shopCounts[h.shop] = (shopCounts[h.shop] || 0) + 1);
+
+    let html = `<div class="stat-section">
+        <div class="stat-title">📈 Энг кўп заказ қилинган (жами ${hist.length} та заказ)</div>`;
+    sorted.slice(0, 15).forEach(([name, count]) => {
+        const pct = Math.round(count / maxCount * 100);
+        const kgText = kgTotals[name] ? ` · ${kgTotals[name].toFixed(1)} кг` : '';
+        html += `<div class="stat-row">
+            <div class="stat-name">${name}</div>
+            <div class="stat-bar-wrap"><div class="stat-bar" style="width:${pct}%"></div></div>
+            <div class="stat-count">${count}x${kgText}</div>
+        </div>`;
+    });
+    html += `</div><div class="stat-section">
+        <div class="stat-title">🏪 Бозор бўйича</div>`;
+    Object.entries(shopCounts).sort((a,b)=>b[1]-a[1]).forEach(([shop, cnt]) => {
+        html += `<div class="stat-row"><div class="stat-name">${shop}</div><div class="stat-count">${cnt} заказ</div></div>`;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────
+function switchTab(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`page-${name}`).classList.add('active');
+    event.target.classList.add('active');
+    
+    // Qidirish va footer faqat order tabda
+    const isOrder = name === 'order';
+    document.getElementById('search').style.display = isOrder ? '' : 'none';
+    document.querySelector('.footer').style.display = isOrder ? '' : 'none';
+
+    if(name === 'history') renderHistory();
+    if(name === 'stats') renderStats();
+}
+
+// ─── SEND ────────────────────────────────────────────────────────────
+async function sendOrder() {
+    const btn = document.getElementById('btn');
+    const shop = getSelectedShop();
+    const leftBody = document.getElementById('pdf-left');
+    const rightBody = document.getElementById('pdf-right');
+    
+    leftBody.innerHTML = '';
+    rightBody.innerHTML = '';
+    let hasOrder = false;
+    const orderItems = [];
+
+    leftCol.forEach(name => {
+        const q = document.getElementById(`q-${name}`)?.value;
+        const u = document.getElementById(`u-${name}`)?.value;
+        const val = (q > 0) ? `${q} ${u}` : '';
+        if(q > 0) { hasOrder = true; orderItems.push({ name, q, u }); }
+        leftBody.innerHTML += `<tr><td class="col-name">${name}</td><td class="col-val">${val}</td></tr>`;
+    });
+
+    rightCol.forEach(item => {
+        if(item.title) {
+            rightBody.innerHTML += `<tr><td colspan="2" class="section-title">${item.title}</td></tr>`;
+        } else {
+            const q = document.getElementById(`q-${item}`)?.value;
+            const u = document.getElementById(`u-${item}`)?.value;
+            const val = (q > 0) ? `${q} ${u}` : '';
+            if(q > 0) { hasOrder = true; orderItems.push({ name: item, q, u }); }
+            rightBody.innerHTML += `<tr><td class="col-name">${item}</td><td class="col-val">${val}</td></tr>`;
+        }
+    });
+
+    if(!hasOrder) return alert('Миқдор киритинг!');
+
+    btn.innerText = 'ЮБОРИЛМОҚДА...';
+    btn.disabled = true;
+    document.getElementById('pdf-shop-title').innerText = shop;
+    document.getElementById('pdf-date').innerText = 'Сана: ' + new Date().toLocaleDateString();
+
+    try {
+        const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
+        canvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            formData.append('chat_id', CHAT_ID);
+            formData.append('photo', blob, 'order.png');
+            formData.append('caption', `📝 Янги заказ: ${shop} | ${orderItems.length} та маҳсулот`);
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+            
+            // Save to history
+            saveToHistory(shop, orderItems);
+            localStorage.removeItem('draft');
+            
+            alert('✅ Заказ юборилди!');
+            location.reload();
+        });
+    } catch(e) {
+        alert('Хатолик юз берди');
+        btn.disabled = false;
+        btn.innerText = '✈️ ТЕЛЕГРАМГА ЮБОРИШ';
+    }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────
+selectedShop = getShops()[0] || '';
+renderShopBtns();
+renderList();
+updateHistBadge();
 </script>
 </body>
 </html>
