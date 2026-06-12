@@ -1,15 +1,44 @@
 {
   "name": "TeeGu zakaz",
   "short_name": "TeeGu",
+  "description": "Салат ва соления заказ қилиш иловаси",
   "start_url": "/ZakazSalad/index.html",
+  "scope": "/ZakazSalad/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#27ae60",
+  "lang": "uz",
+  "categories": ["business", "food"],
   "icons": [
     {
       "src": "app-icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Янги заказ",
+      "short_name": "Заказ",
+      "description": "Янги заказ тузиш",
+      "url": "/ZakazSalad/index.html#order",
+      "icons": [{ "src": "app-icon.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "Тарих",
+      "short_name": "Тарих",
+      "description": "Заказлар тарихи",
+      "url": "/ZakazSalad/index.html#history",
+      "icons": [{ "src": "app-icon.png", "sizes": "512x512" }]
     }
   ]
 }
