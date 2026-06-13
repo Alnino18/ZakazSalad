@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeeGu Admin Panel</title>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+      import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+        from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+      import { getFirestore, collection, getDocs, onSnapshot, query, orderBy, where,
+               doc, getDoc, deleteDoc, updateDoc, Timestamp }
+        from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAnzhtoR_WEkTcuJP5bizldsVj3qttDx4Y",
+        authDomain: "zakazsalad.firebaseapp.com",
+        projectId: "zakazsalad",
+        storageBucket: "zakazsalad.firebasestorage.app",
+        messagingSenderId: "1070970306362",
+        appId: "1:1070970306362:web:941353ba55f8e84c341a03"
+      };
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      window._fb = { auth, db, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+        collection, getDocs, onSnapshot, query, orderBy, where, doc, getDoc, deleteDoc, updateDoc };
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a1a; }
+
+        /* ── AUTH ── */
+        #authScreen {
+            display: flex; position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        #authScreen.hide { display: none; }
+        .auth-box {
+            background: rgba(255,255,255,.97); border-radius: 24px;
+            padding: 40px 32px; width: 100%; max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        }
+        .auth-box h1 { font-size: 26px; font-weight: 900; color: #1a1a1a; margin-bottom: 4px; }
+        .auth-box p { color: #8e8e93; font-size: 14px; margin-bottom: 28px; }
+        .auth-box input {
+            width: 100%; padding: 14px 16px; border: 1.5px solid #e0e0e0;
+            border-radius: 14px; font-size: 15px; background: #f7f7f7;
+            margin-bottom: 12px; outline: none; transition: border .2s;
+        }
+        .auth-box input:focus { border-color: #27ae60; background: #f0faf4; }
+        .auth-box button {
+            width: 100%; padding: 15px; background: #27ae60; color: #fff;
+            border: none; border-radius: 14px; font-size: 16px; font-weight: 700;
+            cursor: pointer; margin-top: 4px;
+        }
+        .auth-box button:disabled { background: #aaa; cursor: not-allowed; }
+        .auth-err { color: #ff3b30; font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
+
+        /* ── LAYOUT ── */
+        #app { display: none; min-height: 100vh; flex-direction: column; }
+        #app.show { display: flex; }
+
+        /* ── HEADER ── */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e, #0f3460);
+            color: #fff; padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 60px; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,.2);
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header-logo { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+        .header-logo span { color: #27ae60; }
+        .header-badge {
+            background: rgba(255,255,255,.15); padding: 4px 10px;
+            border-radius: 8px; font-size: 12px; font-weight: 600;
+        }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-pill {
+            background: rgba(255,255,255,.15); padding: 6px 14px;
+            border-radius: 20px; font-size: 13px; font-weight: 600;
+        }
+        .btn-logout {
+            background: rgba(255,59,48,.2); border: 1px solid rgba(255,59,48,.4);
+            color: #ff6b6b; padding: 6px 14px; border-radius: 10px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .live-dot {
+            width: 8px; height: 8px; background: #27ae60; border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        /* ── NAV TABS ── */
+        .nav-tabs {
+            background: #fff; border-bottom: 1px solid #e8e8e8;
+            display: flex; gap: 0; padding: 0 24px; overflow-x: auto;
+        }
+        .nav-tab {
+            padding: 14px 20px; font-size: 14px; font-weight: 600;
+            color: #8e8e93; cursor: pointer; border-bottom: 3px solid transparent;
+            white-space: nowrap; transition: all .2s;
+        }
+        .nav-tab.active { color: #27ae60; border-bottom-color: #27ae60; }
+        .nav-tab:hover { color: #27ae60; }
+
+        /* ── MAIN ── */
+        .main { flex: 1; padding: 24px; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+        /* ── STATS CARDS ── */
+        .stats-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #fff; border-radius: 16px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .stat-card .label { font-size: 12px; color: #8e8e93; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+        .stat-card .value { font-size: 32px; font-weight: 900; color: #1a1a1a; }
+        .stat-card .sub { font-size: 12px; color: #8e8e93; margin-top: 4px; }
+        .stat-card.green .value { color: #27ae60; }
+        .stat-card.blue .value { color: #007aff; }
+        .stat-card.orange .value { color: #ff9500; }
+        .stat-card.purple .value { color: #af52de; }
+
+        /* ── FILTER BAR ── */
+        .filter-bar {
+            background: #fff; border-radius: 16px; padding: 16px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 20px;
+            display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
+        .filter-group label { font-size: 11px; font-weight: 700; color: #8e8e93; text-transform: uppercase; letter-spacing: .5px; }
+        .filter-group select, .filter-group input {
+            padding: 9px 12px; border: 1.5px solid #e0e0e0; border-radius: 10px;
+            font-size: 14px; background: #f7f7f7; outline: none; color: #1a1a1a;
+        }
+        .filter-group select:focus, .filter-group input:focus { border-color: #27ae60; background: #f0faf4; }
+        .btn-reset {
+            padding: 9px 18px; background: #f0f0f0; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 600; cursor: pointer; color: #555; align-self: flex-end;
+        }
+        .btn-excel {
+            padding: 9px 18px; background: #27ae60; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 700; cursor: pointer; color: #fff; align-self: flex-end;
+            display: flex; align-items: center; gap: 6px; margin-left: auto;
+        }
+        .btn-excel:hover { background: #219150; }
+
+        /* ── TABLE ── */
+        .table-wrap {
+            background: #fff; border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06); overflow: hidden;
+        }
+        .table-header {
+            padding: 16px 20px; display: flex; align-items: center;
+            justify-content: space-between; border-bottom: 1px solid #f0f0f0;
+        }
+        .table-title { font-size: 16px; font-weight: 800; }
+        .table-count { font-size: 13px; color: #8e8e93; }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: #f8f9fa; }
+        th {
+            padding: 12px 16px; text-align: left; font-size: 12px;
+            font-weight: 700; color: #8e8e93; text-transform: uppercase;
+            letter-spacing: .5px; white-space: nowrap;
+        }
+        td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #f5f5f5; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafff9; }
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 20px;
+            font-size: 12px; font-weight: 700;
+        }
+        .badge-manager { background: #fff3cd; color: #856404; }
+        .badge-worker  { background: #d1ecf1; color: #0c5460; }
+        .badge-shop    { background: #e8f5e9; color: #2e7d32; }
+        .items-list { font-size: 13px; color: #444; line-height: 1.6; }
+        .items-list b { color: #1a1a1a; }
+        .note-text { font-size: 12px; color: #8e8e93; font-style: italic; margin-top: 4px; }
+        .btn-del-row {
+            background: #fff0f0; border: none; color: #ff3b30; padding: 5px 10px;
+            border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+        }
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: #8e8e93;
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 16px; font-weight: 600; }
+
+        /* ── WEEKLY TAB ── */
+        .weekly-controls {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .week-nav {
+            display: flex; align-items: center; gap: 8px;
+            background: #fff; border-radius: 12px; padding: 8px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .week-nav button {
+            background: none; border: none; font-size: 18px; cursor: pointer;
+            color: #27ae60; width: 28px; height: 28px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .week-nav button:hover { background: #f0faf4; }
+        .week-label { font-size: 14px; font-weight: 700; min-width: 200px; text-align: center; }
+        .weekly-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .worker-week-card {
+            background: #fff; border-radius: 16px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .worker-week-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+        .worker-week-card .order-count { font-size: 12px; color: #8e8e93; margin-bottom: 14px; }
+        .shop-block { margin-bottom: 12px; }
+        .shop-block .shop-name {
+            font-size: 12px; font-weight: 700; color: #27ae60;
+            text-transform: uppercase; margin-bottom: 6px;
+            padding-bottom: 4px; border-bottom: 1px solid #e8f5e9;
+        }
+        .shop-item { display: flex; justify-content: space-between; font-size: 13px; padding: 2px 0; }
+        .shop-item .name { color: #444; }
+        .shop-item .qty { font-weight: 700; color: #1a1a1a; white-space: nowrap; margin-left: 8px; }
+
+        /* ── USERS TAB ── */
+        .users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        .user-card {
+            background: #fff; border-radius: 16px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .user-card .u-name { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+        .user-card .u-email { font-size: 13px; color: #8e8e93; margin-bottom: 12px; }
+        .user-card .u-stats { display: flex; gap: 16px; }
+        .u-stat { text-align: center; }
+        .u-stat .n { font-size: 22px; font-weight: 900; color: #27ae60; }
+        .u-stat .l { font-size: 11px; color: #8e8e93; font-weight: 600; }
+
+        /* ── STATUS BADGES ── */
+        .status-select {
+            padding: 4px 8px; border-radius: 8px; border: none;
+            font-size: 12px; font-weight: 700; cursor: pointer; outline: none;
+        }
+        .status-new      { background: #fff3cd; color: #856404; }
+        .status-accepted { background: #d1ecf1; color: #0c5460; }
+        .status-done     { background: #d4edda; color: #155724; }
+
+        /* ── NOTIFICATION ── */
+        .notif-toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+            background: #1a1a2e; color: #fff; padding: 14px 20px;
+            border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.3);
+            display: flex; align-items: center; gap: 12px;
+            animation: slideIn .3s ease; max-width: 320px;
+        }
+        .notif-toast .notif-icon { font-size: 24px; }
+        .notif-toast .notif-body { flex: 1; }
+        .notif-toast .notif-title { font-size: 14px; font-weight: 700; }
+        .notif-toast .notif-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
+        .notif-toast .notif-close { cursor: pointer; color: #aaa; font-size: 18px; }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* ── LOADING ── */
+        .loading {
+            display: flex; align-items: center; justify-content: center;
+            padding: 60px; color: #8e8e93; gap: 12px;
+        }
+        .spinner {
+            width: 24px; height: 24px; border: 3px solid #e0e0e0;
+            border-top-color: #27ae60; border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── PAGE SECTIONS ── */
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .main { padding: 16px; }
+            .header { padding: 0 16px; }
+            th, td { padding: 8px 10px; }
+            .btn-excel span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authScreen">
+    <div class="auth-box">
+        <h1>🔐 TeeGu Admin</h1>
+        <p>Фақат менежерлар учун</p>
+        <input type="email" id="aEmail" placeholder="Email" autocomplete="email">
+        <input type="password" id="aPass" placeholder="Парол" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')doLogin()">
+        <button id="aBtn" onclick="doLogin()">Кириш</button>
+        <div class="auth-err" id="aErr"></div>
+    </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <div class="header-logo">Tee<span>Gu</span> Admin</div>
+            <div class="header-badge">📊 Панель</div>
+            <div class="live-dot" title="Реал-тайм"></div>
+        </div>
+        <div class="header-right">
+            <div class="user-pill" id="userPill">👤 —</div>
+            <button id="notifBtn" onclick="requestNotifPermission()" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 12px;border-radius:10px;font-size:13px;cursor:pointer" title="Билдиришномалар">🔔</button>
+            <button class="btn-logout" onclick="doLogout()">Чиқиш</button>
+        </div>
+    </div>
+
+    <!-- NAV -->
+    <div class="nav-tabs">
+        <div class="nav-tab active" onclick="switchTab('orders', this)">📦 Барча заказлар</div>
+        <div class="nav-tab" onclick="switchTab('weekly', this)">📅 Ҳафталик</div>
+        <div class="nav-tab" onclick="switchTab('users', this)">👥 Ходимлар</div>
+        <div class="nav-tab" onclick="switchTab('products', this)">🥗 Маҳсулотлар</div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- ══ ORDERS TAB ══ -->
+        <div class="page-section active" id="sec-orders">
+            <div class="stats-row" id="statsRow">
+                <div class="stat-card green"><div class="label">Жами заказлар</div><div class="value" id="st-total">—</div></div>
+                <div class="stat-card blue"><div class="label">Бугун</div><div class="value" id="st-today">—</div></div>
+                <div class="stat-card orange"><div class="label">Ходимлар</div><div class="value" id="st-workers">—</div></div>
+                <div class="stat-card purple"><div class="label">Бозорлар</div><div class="value" id="st-shops">—</div></div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Ходим</label>
+                    <select id="fWorker" onchange="applyFilters()"><option value="">Барчаси</option></select>
+                </div>
+                <div class="filter-group">
+                    <label>Бозор</label>
+                    <select id="fShop" onchange="applyFilters()"><option value="">Барчаси</option></select>
+                </div>
+                <div class="filter-group">
+                    <label>Дан</label>
+                    <input type="date" id="fFrom" onchange="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label>Гача</label>
+                    <input type="date" id="fTo" onchange="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label>Қидирув</label>
+                    <input type="text" id="fSearch" placeholder="Маҳсулот номи..." oninput="applyFilters()">
+                </div>
+                <button class="btn-reset" onclick="resetFilters()">✕ Тозалаш</button>
+                <button class="btn-excel" onclick="exportExcel()">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="2"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <span>Excel юклаш</span>
+                </button>
+            </div>
+
+            <div class="table-wrap">
+                <div class="table-header">
+                    <div class="table-title">Заказлар рўйхати</div>
+                    <div class="table-count" id="filteredCount">—</div>
+                </div>
+                <div id="ordersTable"><div class="loading"><div class="spinner"></div> Юкланяпти...</div></div>
+            </div>
+        </div>
+
+        <!-- ══ WEEKLY TAB ══ -->
+        <div class="page-section" id="sec-weekly">
+            <div class="weekly-controls">
+                <div class="week-nav">
+                    <button onclick="changeWeek(-1)">◀</button>
+                    <div class="week-label" id="weekLabel">—</div>
+                    <button onclick="changeWeek(1)">▶</button>
+                </div>
+                <select id="wShopFilter" style="padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fff;outline:none" onchange="renderWeekly()">
+                    <option value="">Барча бозорлар</option>
+                </select>
+                <button class="btn-excel" onclick="exportWeeklyExcel()">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="2"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="2"/></svg>
+                    <span>Excel</span>
+                </button>
+            </div>
+            <div class="weekly-grid" id="weeklyGrid">
+                <div class="loading"><div class="spinner"></div> Юкланяпти...</div>
+            </div>
+        </div>
+
+        <!-- ══ USERS TAB ══ -->
+        <div class="page-section" id="sec-users">
+            <div class="users-grid" id="usersGrid">
+                <div class="loading"><div class="spinner"></div> Юкланяпти...</div>
+            </div>
+        </div>
+
+        <!-- ══ PRODUCTS TAB ══ -->
+        <div class="page-section" id="sec-products">
+            <div class="table-wrap">
+                <div class="table-header">
+                    <div class="table-title">🥗 Маҳсулотлар статистикаси</div>
+                    <div class="table-count" id="prodCount">—</div>
+                </div>
+                <div id="productsTable"><div class="loading"><div class="spinner"></div> Юкланяпти...</div></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ── STATE ──────────────────────────────────────────────────────────────
+    let allOrders = [];
+    let allUsers  = {};   // uid → { name, email, role }
+    let weekOffset = 0;
+    let unsubOrders = null;
+
+    function fb() { return window._fb; }
+
+    // ── AUTH ───────────────────────────────────────────────────────────────
+    async function doLogin() {
+        const email = document.getElementById('aEmail').value.trim();
+        const pass  = document.getElementById('aPass').value;
+        const err   = document.getElementById('aErr');
+        const btn   = document.getElementById('aBtn');
+        err.textContent = '';
+        if (!email || !pass) { err.textContent = 'Email ва паролни киритинг!'; return; }
+        btn.disabled = true; btn.textContent = 'Кириш...';
+        try {
+            await fb().signInWithEmailAndPassword(fb().auth, email, pass);
+        } catch(e) {
+            const msgs = {
+                'auth/invalid-credential': 'Email ёки парол хато',
+                'auth/user-not-found': 'Фойдаланувчи топилмади',
+                'auth/wrong-password': 'Нотўғри парол',
+                'auth/too-many-requests': 'Кўп уриниш, кейин урининг'
+            };
+            err.textContent = msgs[e.code] || e.message;
+            btn.disabled = false; btn.textContent = 'Кириш';
+        }
+    }
+
+    async function doLogout() {
+        if (!confirm('Чиқишни тасдиқлайсизми?')) return;
+        if (unsubOrders) unsubOrders();
+        await fb().signOut(fb().auth);
+    }
+
+    function initAuth() {
+        if (!window._fb) { setTimeout(initAuth, 100); return; }
+        fb().onAuthStateChanged(fb().auth, async user => {
+            if (!user) {
+                document.getElementById('authScreen').classList.remove('hide');
+                document.getElementById('app').classList.remove('show');
+                document.getElementById('aBtn').disabled = false;
+                document.getElementById('aBtn').textContent = 'Кириш';
+                return;
+            }
+            // Check role — always block if not confirmed manager
+            let isManager = false;
+            try {
+                const snap = await fb().getDoc(fb().doc(fb().db, 'users', user.uid));
+                const role = snap.exists() ? snap.data().role : null;
+                if (role === 'manager') {
+                    isManager = true;
+                    document.getElementById('userPill').textContent = '👤 ' + (snap.data().name || user.email);
+                }
+            } catch(e) {
+                isManager = false;
+            }
+            if (!isManager) {
+                await fb().signOut(fb().auth);
+                document.getElementById('aErr').textContent = '⛔ Рухсат йўқ. Фақат менежерлар учун.';
+                document.getElementById('aBtn').disabled = false;
+                document.getElementById('aBtn').textContent = 'Кириш';
+                return;
+            }
+            document.getElementById('authScreen').classList.add('hide');
+            document.getElementById('app').classList.add('show');
+            loadData();
+        });
+    }
+
+    // ── DATA LOADING ───────────────────────────────────────────────────────
+    async function loadData() {
+        await loadUsers();
+        subscribeOrders();
+    }
+
+    async function loadUsers() {
+        try {
+            const { db, collection, getDocs } = fb();
+            const snap = await getDocs(collection(db, 'users'));
+            allUsers = {};
+            snap.forEach(d => { allUsers[d.id] = d.data(); });
+        } catch(e) { console.warn('Users load failed:', e); }
+    }
+
+    function subscribeOrders() {
+        const { db, collection, query, orderBy, onSnapshot } = fb();
+        const q = query(collection(db, 'orders'), orderBy('time', 'desc'));
+        unsubOrders = onSnapshot(q, snap => {
+            allOrders = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+            watchNewOrders();
+            refreshAll();
+        });
+    }
+
+    function refreshAll() {
+        updateStats();
+        populateFilters();
+        applyFilters();
+        renderWeekly();
+        renderUsers();
+        renderProducts();
+    }
+
+    // ── STATS ──────────────────────────────────────────────────────────────
+    function updateStats() {
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById('st-total').textContent = allOrders.length;
+        document.getElementById('st-today').textContent = allOrders.filter(o => o.time && o.time.startsWith(today)).length;
+        document.getElementById('st-workers').textContent = new Set(allOrders.map(o => o.uid)).size;
+        document.getElementById('st-shops').textContent = new Set(allOrders.map(o => o.shop)).size;
+    }
+
+    // ── FILTERS ────────────────────────────────────────────────────────────
+    function populateFilters() {
+        const workers = [...new Map(allOrders.map(o => [o.uid, o.userName || allUsers[o.uid]?.name || o.uid])).entries()];
+        const shops   = [...new Set(allOrders.map(o => o.shop).filter(Boolean))].sort();
+
+        const wSel = document.getElementById('fWorker');
+        const cur  = wSel.value;
+        wSel.innerHTML = '<option value="">Барчаси</option>' +
+            workers.map(([uid, name]) => `<option value="${uid}"${uid===cur?' selected':''}>${name}</option>`).join('');
+
+        const sSel = document.getElementById('fShop');
+        const curS = sSel.value;
+        sSel.innerHTML = '<option value="">Барчаси</option>' +
+            shops.map(s => `<option value="${s}"${s===curS?' selected':''}>${s}</option>`).join('');
+
+        // Weekly shop filter
+        const wShop = document.getElementById('wShopFilter');
+        const curWS = wShop.value;
+        wShop.innerHTML = '<option value="">Барча бозорлар</option>' +
+            shops.map(s => `<option value="${s}"${s===curWS?' selected':''}>${s}</option>`).join('');
+    }
+
+    function getFiltered() {
+        const worker = document.getElementById('fWorker').value;
+        const shop   = document.getElementById('fShop').value;
+        const from   = document.getElementById('fFrom').value;
+        const to     = document.getElementById('fTo').value;
+        const search = document.getElementById('fSearch').value.trim().toLowerCase();
+
+        return allOrders.filter(o => {
+            if (worker && o.uid !== worker) return false;
+            if (shop   && o.shop !== shop)  return false;
+            const d = o.time ? o.time.slice(0, 10) : '';
+            if (from && d < from) return false;
+            if (to   && d > to)   return false;
+            if (search) {
+                const text = (o.items || []).map(i => i.name).join(' ').toLowerCase();
+                if (!text.includes(search) && !(o.shop||'').toLowerCase().includes(search) &&
+                    !(o.userName||'').toLowerCase().includes(search)) return false;
+            }
+            return true;
+        });
+    }
+
+    function applyFilters() {
+        const filtered = getFiltered();
+        document.getElementById('filteredCount').textContent = `${filtered.length} та заказ`;
+        renderTable(filtered);
+    }
+
+    function resetFilters() {
+        document.getElementById('fWorker').value = '';
+        document.getElementById('fShop').value   = '';
+        document.getElementById('fFrom').value   = '';
+        document.getElementById('fTo').value     = '';
+        document.getElementById('fSearch').value = '';
+        applyFilters();
+    }
+
+    // ── ORDERS TABLE ───────────────────────────────────────────────────────
+    function renderTable(orders) {
+        const el = document.getElementById('ordersTable');
+        if (orders.length === 0) {
+            el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>Заказ топилмади</p></div>`;
+            return;
+        }
+        el.innerHTML = `<table>
+            <thead><tr>
+                <th>#</th><th>Сана/Вақт</th><th>Ходим</th><th>Бозор</th>
+                <th>Маҳсулотлар</th><th>Изоҳ</th><th></th>
+            </tr></thead>
+            <tbody>${orders.map((o, i) => {
+                const d = o.time ? new Date(o.time) : null;
+                const ds = d ? `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}<br><small style="color:#8e8e93">${pad(d.getHours())}:${pad(d.getMinutes())}</small>` : '—';
+                const workerName = o.userName || allUsers[o.uid]?.name || '?';
+                const items = (o.items || []).map(it => `<div class="shop-item"><span class="name">${it.name}</span><span class="qty">${it.q} ${it.u||''}</span></div>`).join('');
+                const status = o.status || 'new';
+                const statusLabels = { new: '🆕 Янги', accepted: '✅ Қабул', done: '✔️ Бажарилди' };
+                return `<tr>
+                    <td style="color:#8e8e93;font-size:12px">${orders.length - i}</td>
+                    <td style="white-space:nowrap">${ds}</td>
+                    <td><span class="badge badge-worker">👷 ${workerName}</span></td>
+                    <td><span class="badge badge-shop">${o.shop||'?'}</span></td>
+                    <td><div class="items-list">${items}</div></td>
+                    <td>${o.note ? `<div class="note-text">📝 ${o.note}</div>` : '<span style="color:#ccc">—</span>'}</td>
+                    <td>
+                        <select class="status-select status-${status}" onchange="updateStatus('${o._id}', this.value, this)">
+                            <option value="new"${status==='new'?' selected':''}>🆕 Янги</option>
+                            <option value="accepted"${status==='accepted'?' selected':''}>✅ Қабул</option>
+                            <option value="done"${status==='done'?' selected':''}>✔️ Бажарилди</option>
+                        </select>
+                    </td>
+                    <td><button class="btn-del-row" onclick="deleteOrder('${o._id}')">🗑</button></td>
+                </tr>`;
+            }).join('')}</tbody>
+        </table>`;
+    }
+
+    async function updateStatus(id, status, sel) {
+        try {
+            await fb().updateDoc(fb().doc(fb().db, 'orders', id), { status });
+            sel.className = 'status-select status-' + status;
+        } catch(e) { alert('Хатолик: ' + e.message); }
+    }
+
+    async function deleteOrder(id) {
+        if (!confirm('Заказни ўчиришни тасдиқлайсизми?')) return;
+        try {
+            await fb().deleteDoc(fb().doc(fb().db, 'orders', id));
+        } catch(e) { alert('Хатолик: ' + e.message); }
+    }
+
+    // ── WEEKLY ─────────────────────────────────────────────────────────────
+    function getWeekRange(offset) {
+        const now = new Date();
+        const day = now.getDay() || 7;
+        const mon = new Date(now); mon.setDate(now.getDate() - day + 1 + offset * 7);
+        const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+        return { mon, sun };
+    }
+
+    function renderWeekly() {
+        const { mon, sun } = getWeekRange(weekOffset);
+        const monStr = `${pad(mon.getDate())}.${pad(mon.getMonth()+1)}.${mon.getFullYear()}`;
+        const sunStr = `${pad(sun.getDate())}.${pad(sun.getMonth()+1)}.${sun.getFullYear()}`;
+        document.getElementById('weekLabel').textContent = `${monStr} — ${sunStr}`;
+
+        const shopFilter = document.getElementById('wShopFilter').value;
+        const monISO = mon.toISOString().slice(0, 10);
+        const sunISO = sun.toISOString().slice(0, 10);
+
+        const weekOrders = allOrders.filter(o => {
+            const d = o.time ? o.time.slice(0, 10) : '';
+            return d >= monISO && d <= sunISO && (!shopFilter || o.shop === shopFilter);
+        });
+
+        // Group by worker
+        const byWorker = {};
+        weekOrders.forEach(o => {
+            const uid = o.uid || 'unknown';
+            if (!byWorker[uid]) byWorker[uid] = { name: o.userName || allUsers[uid]?.name || '?', orders: [] };
+            byWorker[uid].orders.push(o);
+        });
+
+        const grid = document.getElementById('weeklyGrid');
+        if (Object.keys(byWorker).length === 0) {
+            grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">📭</div><p>Бу ҳафтада заказ йўқ</p></div>`;
+            return;
+        }
+
+        grid.innerHTML = Object.entries(byWorker).map(([uid, w]) => {
+            // Group by shop
+            const byShop = {};
+            w.orders.forEach(o => {
+                if (!byShop[o.shop]) byShop[o.shop] = {};
+                (o.items || []).forEach(it => {
+                    const key = it.name;
+                    if (!byShop[o.shop][key]) byShop[o.shop][key] = { q: 0, u: it.u || '' };
+                    byShop[o.shop][key].q += parseFloat(it.q) || 0;
+                });
+            });
+
+            const shopBlocks = Object.entries(byShop).map(([shop, items]) => `
+                <div class="shop-block">
+                    <div class="shop-name">🏪 ${shop}</div>
+                    ${Object.entries(items).map(([name, {q, u}]) =>
+                        `<div class="shop-item"><span class="name">${name}</span><span class="qty">${q % 1 === 0 ? q : q.toFixed(2)} ${u}</span></div>`
+                    ).join('')}
+                </div>`).join('');
+
+            return `<div class="worker-week-card">
+                <h3>👷 ${w.name}</h3>
+                <div class="order-count">${w.orders.length} та заказ</div>
+                ${shopBlocks}
+            </div>`;
+        }).join('');
+    }
+
+    function changeWeek(dir) {
+        weekOffset += dir;
+        if (weekOffset > 0) weekOffset = 0;
+        renderWeekly();
+    }
+
+    // ── USERS ──────────────────────────────────────────────────────────────
+    function renderUsers() {
+        const workers = {};
+        allOrders.forEach(o => {
+            const uid = o.uid || 'unknown';
+            if (!workers[uid]) workers[uid] = { name: o.userName || allUsers[uid]?.name || '?', orders: 0, shops: new Set(), lastOrder: null };
+            workers[uid].orders++;
+            if (o.shop) workers[uid].shops.add(o.shop);
+            if (!workers[uid].lastOrder || o.time > workers[uid].lastOrder) workers[uid].lastOrder = o.time;
+        });
+
+        const grid = document.getElementById('usersGrid');
+        if (Object.keys(workers).length === 0) {
+            grid.innerHTML = `<div class="empty-state"><div class="icon">👥</div><p>Ходимлар йўқ</p></div>`;
+            return;
+        }
+
+        grid.innerHTML = Object.entries(workers).map(([uid, w]) => {
+            const last = w.lastOrder ? new Date(w.lastOrder) : null;
+            const lastStr = last ? `${pad(last.getDate())}.${pad(last.getMonth()+1)}.${last.getFullYear()}` : '—';
+            return `<div class="user-card">
+                <div class="u-name">👷 ${w.name}</div>
+                <div class="u-email" style="font-size:11px;color:#aaa">${uid.slice(0,16)}...</div>
+                <div class="u-stats">
+                    <div class="u-stat"><div class="n">${w.orders}</div><div class="l">Заказ</div></div>
+                    <div class="u-stat"><div class="n">${w.shops.size}</div><div class="l">Бозор</div></div>
+                    <div class="u-stat" style="flex:1;text-align:right"><div style="font-size:12px;color:#8e8e93">Охирги заказ</div><div style="font-size:13px;font-weight:700">${lastStr}</div></div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── PRODUCTS STATS ─────────────────────────────────────────────────────
+    function renderProducts() {
+        const counts = {};
+        allOrders.forEach(o => {
+            (o.items || []).forEach(it => {
+                if (!counts[it.name]) counts[it.name] = { total: 0, orders: 0, shops: new Set() };
+                counts[it.name].total += parseFloat(it.q) || 0;
+                counts[it.name].orders++;
+                if (o.shop) counts[it.name].shops.add(o.shop);
+            });
+        });
+
+        const sorted = Object.entries(counts).sort((a, b) => b[1].orders - a[1].orders);
+        document.getElementById('prodCount').textContent = `${sorted.length} та маҳсулот`;
+
+        const el = document.getElementById('productsTable');
+        if (sorted.length === 0) {
+            el.innerHTML = `<div class="empty-state"><div class="icon">🥗</div><p>Маълумот йўқ</p></div>`;
+            return;
+        }
+
+        el.innerHTML = `<table>
+            <thead><tr>
+                <th>#</th><th>Маҳсулот номи</th><th>Жами заказ</th><th>Жами миқдор</th><th>Бозорлар</th>
+            </tr></thead>
+            <tbody>${sorted.map(([name, d], i) => `<tr>
+                <td style="color:#8e8e93">${i+1}</td>
+                <td style="font-weight:600">${name}</td>
+                <td><span style="background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:20px;font-size:13px;font-weight:700">${d.orders}</span></td>
+                <td style="font-weight:700">${d.total % 1 === 0 ? d.total : d.total.toFixed(2)}</td>
+                <td style="font-size:12px;color:#8e8e93">${[...d.shops].join(', ')}</td>
+            </tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    // ── EXCEL EXPORT ───────────────────────────────────────────────────────
+    function exportExcel() {
+        const filtered = getFiltered();
+        if (filtered.length === 0) { alert('Экспорт қилинадиган маълумот йўқ!'); return; }
+
+        const rows = [['#', 'Сана', 'Вақт', 'Ходим', 'Бозор', 'Маҳсулот', 'Миқдор', 'Бирлик', 'Изоҳ']];
+        filtered.forEach((o, idx) => {
+            const d = o.time ? new Date(o.time) : null;
+            const date = d ? `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}` : '';
+            const time = d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+            const workerName = o.userName || allUsers[o.uid]?.name || '?';
+            (o.items || []).forEach((it, ii) => {
+                rows.push([ii === 0 ? filtered.length - idx : '', ii === 0 ? date : '', ii === 0 ? time : '',
+                    ii === 0 ? workerName : '', ii === 0 ? o.shop || '' : '',
+                    it.name, it.q, it.u || '', ii === 0 ? (o.note || '') : '']);
+            });
+        });
+
+        downloadCSV(rows, `TeeGu_zakazlar_${new Date().toISOString().slice(0,10)}.csv`);
+    }
+
+    function exportWeeklyExcel() {
+        const { mon, sun } = getWeekRange(weekOffset);
+        const monISO = mon.toISOString().slice(0, 10);
+        const sunISO = sun.toISOString().slice(0, 10);
+        const shopFilter = document.getElementById('wShopFilter').value;
+
+        const weekOrders = allOrders.filter(o => {
+            const d = o.time ? o.time.slice(0, 10) : '';
+            return d >= monISO && d <= sunISO && (!shopFilter || o.shop === shopFilter);
+        });
+
+        // Summary by worker + shop + product
+        const rows = [['Ходим', 'Бозор', 'Маҳсулот', 'Жами миқдор', 'Бирлик', 'Заказ сони']];
+        const summary = {};
+        weekOrders.forEach(o => {
+            const worker = o.userName || allUsers[o.uid]?.name || '?';
+            (o.items || []).forEach(it => {
+                const key = `${worker}|||${o.shop}|||${it.name}`;
+                if (!summary[key]) summary[key] = { worker, shop: o.shop, name: it.name, q: 0, u: it.u||'', cnt: 0 };
+                summary[key].q += parseFloat(it.q) || 0;
+                summary[key].cnt++;
+            });
+        });
+
+        Object.values(summary).forEach(r => {
+            rows.push([r.worker, r.shop, r.name, r.q % 1 === 0 ? r.q : r.q.toFixed(2), r.u, r.cnt]);
+        });
+
+        const monStr = `${pad(mon.getDate())}.${pad(mon.getMonth()+1)}`;
+        const sunStr = `${pad(sun.getDate())}.${pad(sun.getMonth()+1)}.${sun.getFullYear()}`;
+        downloadCSV(rows, `TeeGu_haftalik_${monStr}-${sunStr}.csv`);
+    }
+
+    function downloadCSV(rows, filename) {
+        const bom = '\uFEFF'; // UTF-8 BOM for Excel
+        const csv = bom + rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // ── TAB SWITCHING ──────────────────────────────────────────────────────
+    function switchTab(name, el) {
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('sec-' + name).classList.add('active');
+        el.classList.add('active');
+    }
+
+    // ── HELPERS ────────────────────────────────────────────────────────────
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    // ── NOTIFICATIONS ─────────────────────────────────────────────────────────
+    let _lastOrderCount = null;
+    let _notifPermission = false;
+
+    async function requestNotifPermission() {
+        if (!('Notification' in window)) return;
+        const perm = await Notification.requestPermission();
+        _notifPermission = perm === 'granted';
+    }
+
+    function showToast(title, body, icon='📦') {
+        // Remove existing toasts
+        document.querySelectorAll('.notif-toast').forEach(t => t.remove());
+        const toast = document.createElement('div');
+        toast.className = 'notif-toast';
+        toast.innerHTML = `
+            <div class="notif-icon">${icon}</div>
+            <div class="notif-body">
+                <div class="notif-title">${title}</div>
+                <div class="notif-sub">${body}</div>
+            </div>
+            <div class="notif-close" onclick="this.parentElement.remove()">✕</div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 6000);
+
+        // Also send browser notification if permitted
+        if (_notifPermission) {
+            new Notification(title, { body, icon: 'app-icon.png' });
+        }
+    }
+
+    // Watch for new orders and notify
+    function watchNewOrders() {
+        // Called from subscribeOrders on each snapshot update
+        if (_lastOrderCount === null) {
+            _lastOrderCount = allOrders.length;
+            return;
+        }
+        const newCount = allOrders.length - _lastOrderCount;
+        if (newCount > 0) {
+            const latest = allOrders[0];
+            const worker = latest.userName || '?';
+            const shop   = latest.shop || '?';
+            showToast(`🆕 Янги заказ! (${newCount} та)`, `👷 ${worker} — 🏪 ${shop}`, '📦');
+        }
+        _lastOrderCount = allOrders.length;
+    }
+
+    // ── INIT ───────────────────────────────────────────────────────────────
+    requestNotifPermission();
+    initAuth();
+</script>
+</body>
+</html>

@@ -11,6 +11,37 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TeeGu">
     <link rel="apple-touch-icon" href="app-icon.png">
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+            from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import {
+            getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+            collection, addDoc, getDocs, onSnapshot, query, orderBy, where, serverTimestamp
+        }
+            from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnzhtoR_WEkTcuJP5bizldsVj3qttDx4Y",
+            authDomain: "zakazsalad.firebaseapp.com",
+            projectId: "zakazsalad",
+            storageBucket: "zakazsalad.firebasestorage.app",
+            messagingSenderId: "1070970306362",
+            appId: "1:1070970306362:web:941353ba55f8e84c341a03",
+            measurementId: "G-QGECYBYLLH"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ── Expose to global scope ──────────────────────────────────────────
+        window._fb = {
+            auth, db, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+            doc, getDoc, setDoc, updateDoc, deleteDoc,
+            collection, addDoc, getDocs, onSnapshot, query, orderBy, where, serverTimestamp
+        };
+    </script>
     <style>
         /* ═══ SPLASH SCREEN ════════════════════════════════════════════ */
         #splash {
@@ -29,6 +60,330 @@
         #splash.hide {
             opacity: 0;
             pointer-events: none;
+        }
+
+        /* ═══ AUTH SCREEN ══════════════════════════════════════════════ */
+        #authScreen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9000;
+            background: #f2f2f7;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        #authScreen.show {
+            display: flex;
+        }
+
+        .auth-card {
+            background: #fff;
+            border-radius: 22px;
+            padding: 32px 24px 28px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, .12);
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .auth-logo img {
+            width: 80px;
+        }
+
+        .auth-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .auth-sub {
+            text-align: center;
+            font-size: 13px;
+            color: #8e8e93;
+            margin-bottom: 24px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1.5px solid #e0e0e0;
+            font-size: 15px;
+            background: #f7f7f7;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: #27ae60;
+            background: #f0faf0;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 14px;
+            background: #27ae60;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .auth-btn:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        .auth-error {
+            color: #ff3b30;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 10px;
+            min-height: 18px;
+        }
+
+        .auth-role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .auth-role-badge.manager {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .auth-role-badge.worker {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* ═══ USER BAR ══════════════════════════════════════════════════ */
+        #userBar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 14px;
+            background: #e8f5e9;
+            border-bottom: 1px solid #a5d6a7;
+            font-size: 12px;
+            font-weight: 600;
+            color: #2e7d32;
+        }
+
+        #userBar button {
+            background: none;
+            border: none;
+            color: #ff3b30;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        /* ═══ STATUS BADGES ════════════════════════════════════════════ */
+        .status-new {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-accepted {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-done {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* ═══ PROFILE PAGE ═════════════════════════════════════════════ */
+        .profile-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 16px;
+            color: #fff;
+        }
+
+        .profile-name {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .profile-role {
+            text-align: center;
+            font-size: 13px;
+            color: #8e8e93;
+            margin-bottom: 20px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        .profile-stat .n {
+            font-size: 28px;
+            font-weight: 900;
+            color: #27ae60;
+        }
+
+        .profile-stat .l {
+            font-size: 12px;
+            color: #8e8e93;
+            font-weight: 600;
+        }
+
+        .profile-input-group {
+            margin-bottom: 14px;
+        }
+
+        .profile-input-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #8e8e93;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .profile-input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 14px;
+            font-size: 15px;
+            background: #f7f7f7;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .profile-input:focus {
+            border-color: #27ae60;
+            background: #f0faf4;
+        }
+
+        .profile-save-btn {
+            width: 100%;
+            padding: 14px;
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .profile-logout-btn {
+            width: 100%;
+            padding: 14px;
+            background: #fff0f0;
+            color: #ff3b30;
+            border: 1.5px solid #ffcdd2;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* ═══ MANAGER ALL-ORDERS FILTER ════════════════════════════════ */
+        .manager-filter-bar {
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+            flex-wrap: wrap;
+            background: #f7f7f7;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .mf-pill {
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1.5px solid #e0e0e0;
+            background: #fff;
+            color: #555;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .mf-pill.active {
+            background: #27ae60;
+            color: #fff;
+            border-color: #27ae60;
+        }
+
+        .sync-status {
+            font-size: 11px;
+            color: #8e8e93;
+            padding: 4px 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sync-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .sync-dot.live {
+            background: #27ae60;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
         }
 
         #splash img {
@@ -618,6 +973,17 @@
             background: #fff8e1;
             border: none;
             color: #f57c00;
+            border-radius: 10px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-del-hist {
+            background: #fff0f0;
+            border: none;
+            color: #ff3b30;
             border-radius: 10px;
             padding: 7px 14px;
             font-size: 13px;
@@ -1386,12 +1752,12 @@
         .col-name {
             text-align: left;
             padding-left: 8px;
-            width: 70%;
+            width: 80%;
         }
 
         .col-val {
             text-align: center;
-            width: 30%;
+            width: 20%;
             font-size: 17px;
             color: #4682B4;
             font-weight: 900;
@@ -1602,6 +1968,27 @@
         <button onclick="applyUpdate()">Янгилаш</button>
     </div>
 
+    <!-- AUTH SCREEN -->
+    <div id="authScreen">
+        <div class="auth-card">
+            <div class="auth-logo"><img src="logo.png" alt="TeeGu"></div>
+            <div class="auth-title">TeeGu Zakaz</div>
+            <div class="auth-sub">Тизимга кириш</div>
+            <input class="auth-input" id="authEmail" type="email" placeholder="Email" autocomplete="email">
+            <input class="auth-input" id="authPass" type="password" placeholder="Парол" autocomplete="current-password"
+                onkeydown="if(event.key==='Enter')doLogin()">
+            <button class="auth-btn" id="authBtn" onclick="doLogin()">🔑 Кириш</button>
+            <div class="auth-error" id="authError"></div>
+        </div>
+    </div>
+
+    <!-- USER BAR -->
+    <div id="userBar" style="display:none">
+        <span id="userBarName">👤 —</span>
+        <span id="userBarRole"></span>
+        <button onclick="doLogout()">Чиқиш</button>
+    </div>
+
     <div class="header-container">
         <img src="logo.png">
     </div>
@@ -1634,6 +2021,7 @@
             <button class="tab-btn" id="tab-stats" onclick="switchTab('stats',this)">📊 Стат</button>
             <button class="tab-btn" id="tab-weekly" onclick="switchTab('weekly',this)">📅 Ҳафта</button>
             <button class="tab-btn" id="tab-products" onclick="switchTab('products',this)">✏️ Таҳрир</button>
+            <button class="tab-btn" id="tab-profile" onclick="switchTab('profile',this)">👤 Профиль</button>
         </div>
 
         <!-- ORDER PAGE -->
@@ -1651,8 +2039,18 @@
             <div class="products-grid" id="favList"></div>
         </div>
 
+        <!-- PROFILE PAGE -->
+        <div class="page" id="page-profile">
+            <div id="profileContent" style="padding:16px"></div>
+        </div>
+
         <!-- HISTORY PAGE -->
         <div class="page" id="page-history">
+            <div id="managerFilterBar" style="display:none">
+                <div class="manager-filter-bar" id="mgrFilterPills"></div>
+                <div class="sync-status"><span class="sync-dot live" id="syncDot"></span><span id="syncLabel">Реал-тайм
+                        уланган</span></div>
+            </div>
             <div class="hist-grid" id="histList"></div>
         </div>
 
@@ -1737,9 +2135,248 @@
         const DEFAULT_SHOPS = ["АСКИЯ БОЗОР", "ЭКО БОЗОР", "СЕРГИЛИ БОЗОР", "СЕРГИЛИ ЯРМАРКА"];
         let selectedShop = '';
 
-        // ─── SHOP MANAGEMENT ─────────────────────────────────────────────────
+        // ─── FIREBASE STATE ───────────────────────────────────────────────────
+        let currentUser = null;
+        let currentRole = null;   // 'manager' | 'worker'
+        let currentName = '';
+        let mgrHistFilter = 'all';
+        let allOrdersUnsub = null;
+        let _allOrdersCache = [];
+
+        function fb() { return window._fb; }
+
+        // ─── AUTH FUNCTIONS ───────────────────────────────────────────────────
+        async function doLogin() {
+            const email = document.getElementById('authEmail').value.trim();
+            const pass = document.getElementById('authPass').value;
+            const errEl = document.getElementById('authError');
+            const btn = document.getElementById('authBtn');
+            errEl.textContent = '';
+            if (!email || !pass) { errEl.textContent = 'Email ва паролни киритинг!'; return; }
+            btn.disabled = true; btn.textContent = 'Кириш...';
+            try {
+                const { auth, signInWithEmailAndPassword } = fb();
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (e) {
+                const msgs = {
+                    'auth/user-not-found': 'Фойдаланувчи топилмади',
+                    'auth/wrong-password': 'Нотўғри парол',
+                    'auth/invalid-email': 'Нотўғри email формати',
+                    'auth/invalid-credential': 'Email ёки парол хато',
+                    'auth/too-many-requests': 'Кўп уриниш. Кейинроқ урининг'
+                };
+                errEl.textContent = msgs[e.code] || ('Хатолик: ' + e.message);
+                btn.disabled = false; btn.textContent = '🔑 Кириш';
+            }
+        }
+
+        async function doLogout() {
+            if (!confirm('Тизимдан чиқишни тасдиқлайсизми?')) return;
+            if (allOrdersUnsub) { allOrdersUnsub(); allOrdersUnsub = null; }
+            if (window._workerOrdersUnsub) { _workerOrdersUnsub(); _workerOrdersUnsub = null; }
+            const { auth, signOut } = fb();
+            await signOut(auth);
+        }
+
+        async function onUserLogin(user) {
+            currentUser = user;
+            if (!user) {
+                currentRole = null; currentName = '';
+                document.getElementById('authScreen').classList.add('show');
+                document.getElementById('userBar').style.display = 'none';
+                document.getElementById('authBtn').disabled = false;
+                document.getElementById('authBtn').textContent = '🔑 Кириш';
+                document.getElementById('authError').textContent = '';
+                return;
+            }
+            try {
+                const { db, doc, getDoc } = fb();
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    currentRole = data.role || 'worker';
+                    currentName = data.name || user.email;
+                } else {
+                    currentRole = 'worker';
+                    currentName = user.email;
+                }
+            } catch (e) {
+                currentRole = 'worker';
+                currentName = user.email;
+            }
+            document.getElementById('authScreen').classList.remove('show');
+            document.getElementById('userBar').style.display = 'flex';
+            document.getElementById('userBarName').textContent = '👤 ' + currentName;
+            document.getElementById('userBarRole').innerHTML =
+                currentRole === 'manager'
+                    ? '<span style="background:#fff3cd;color:#856404;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">👔 Менежер</span>'
+                    : '<span style="background:#d1ecf1;color:#0c5460;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">👷 Менежер</span>';
+
+            if (currentRole === 'manager') {
+                document.getElementById('tab-products').style.display = '';
+                document.getElementById('managerFilterBar').style.display = '';
+                subscribeAllOrders();
+            } else {
+                document.getElementById('tab-products').style.display = 'none';
+                document.getElementById('managerFilterBar').style.display = 'none';
+            }
+            _workerOrdersUnsub = null; // reset on new login
+            flushOfflineQueue(); // sync any queued offline orders
+            subscribeShops();
+            subscribeProducts();
+            renderShopBtns();
+            renderList();
+            updateHistBadge();
+        }
+
+        // ─── FIRESTORE: SHOPS ─────────────────────────────────────────────────
+        function subscribeShops() {
+            const { db, doc, onSnapshot } = fb();
+            onSnapshot(doc(db, 'config', 'shops'), snap => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.list && Array.isArray(data.list)) {
+                        localStorage.setItem('shops', JSON.stringify(data.list));
+                        if (!selectedShop || !data.list.includes(selectedShop))
+                            selectedShop = data.list[0] || '';
+                        renderShopBtns();
+                    }
+                }
+            });
+        }
+
+        async function saveShopsToFirestore(list) {
+            try {
+                const { db, doc, setDoc } = fb();
+                await setDoc(doc(db, 'config', 'shops'), { list }, { merge: true });
+            } catch (e) { console.warn('Shops sync failed:', e); }
+        }
+
+        // ─── FIRESTORE: PRODUCTS ──────────────────────────────────────────────
+        function subscribeProducts() {
+            const { db, doc, onSnapshot } = fb();
+            onSnapshot(doc(db, 'config', 'products'), snap => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.customNames) localStorage.setItem('customNames', JSON.stringify(data.customNames));
+                    if (data.customProducts) localStorage.setItem('customProducts', JSON.stringify(data.customProducts));
+                    renderList();
+                    if (document.getElementById('page-products').classList.contains('active'))
+                        renderProductsEditor();
+                }
+            });
+        }
+
+        async function saveProductsToFirestore() {
+            try {
+                const { db, doc, setDoc } = fb();
+                await setDoc(doc(db, 'config', 'products'), {
+                    customNames: getCustomNames(),
+                    customProducts: getCustomProducts()
+                });
+            } catch (e) { console.warn('Products sync failed:', e); }
+        }
+
+        // ─── FIRESTORE: ALL ORDERS (manager real-time) ────────────────────────
+        function subscribeAllOrders() {
+            if (allOrdersUnsub) allOrdersUnsub();
+            const { db, collection, query, orderBy, onSnapshot } = fb();
+            const q = query(collection(db, 'orders'), orderBy('time', 'desc'));
+            allOrdersUnsub = onSnapshot(q, snap => {
+                _allOrdersCache = snap.docs.map(d => ({ ...d.data(), firestoreId: d.id }));
+                if (document.getElementById('page-history').classList.contains('active'))
+                    renderManagerHistory(_allOrdersCache);
+                updateHistBadge();
+            });
+        }
+
+        function renderManagerHistory(orders) {
+            const workers = [...new Map(orders.map(o => [o.uid, o.userName])).entries()];
+            const pillsEl = document.getElementById('mgrFilterPills');
+            if (pillsEl) {
+                let html = `<div class="mf-pill${mgrHistFilter === 'all' ? ' active' : ''}" onclick="setMgrFilter('all')">Барчаси (${orders.length})</div>`;
+                workers.forEach(([uid, name]) => {
+                    const cnt = orders.filter(o => o.uid === uid).length;
+                    html += `<div class="mf-pill${mgrHistFilter === uid ? ' active' : ''}" onclick="setMgrFilter('${uid}')">${name || '?'} (${cnt})</div>`;
+                });
+                pillsEl.innerHTML = html;
+            }
+            const filtered = mgrHistFilter === 'all' ? orders : orders.filter(o => o.uid === mgrHistFilter);
+            renderHistoryFromData(filtered, true);
+        }
+
+        function setMgrFilter(uid) {
+            mgrHistFilter = uid;
+            renderManagerHistory(_allOrdersCache);
+        }
+
+        // Offline queue
+        function getOfflineQueue() { return JSON.parse(localStorage.getItem('offlineQueue') || '[]'); }
+        function saveOfflineQueue(q) { localStorage.setItem('offlineQueue', JSON.stringify(q)); }
+
+        async function flushOfflineQueue() {
+            if (!currentUser || !window._fb || !navigator.onLine) return;
+            const queue = getOfflineQueue();
+            if (queue.length === 0) return;
+            const { db, collection, addDoc, serverTimestamp } = fb();
+            const remaining = [];
+            for (const item of queue) {
+                try {
+                    await addDoc(collection(db, 'orders'), {
+                        uid: currentUser.uid,
+                        userName: currentName || currentUser.email,
+                        shop: item.shop, items: item.items, note: item.note || '',
+                        time: item.time, serverTime: serverTimestamp(), synced: true
+                    });
+                } catch (e) { remaining.push(item); }
+            }
+            saveOfflineQueue(remaining);
+            if (remaining.length === 0 && queue.length > 0) {
+                console.log('✅ Offline queue flushed:', queue.length, 'orders');
+            }
+        }
+
+        // Flush queue when coming back online
+        window.addEventListener('online', () => {
+            flushOfflineQueue();
+        });
+
+        async function saveOrderToFirestore(shop, items, note) {
+            if (!currentUser || !window._fb) {
+                console.warn('saveOrderToFirestore: no user or firebase');
+                return;
+            }
+            if (!navigator.onLine) {
+                // Save to offline queue
+                const queue = getOfflineQueue();
+                queue.push({ shop, items, note: note || '', time: new Date().toISOString() });
+                saveOfflineQueue(queue);
+                console.log('📴 Offline — заказ навбатга сақланди');
+                return;
+            }
+            try {
+                const { db, collection, addDoc, serverTimestamp } = fb();
+                const docRef = await addDoc(collection(db, 'orders'), {
+                    uid: currentUser.uid,
+                    userName: currentName || currentUser.email,
+                    shop: shop, items: items, note: note || '',
+                    time: new Date().toISOString(),
+                    serverTime: serverTimestamp()
+                });
+                console.log('✅ Order saved to Firestore:', docRef.id);
+                // Also try to flush any queued orders
+                flushOfflineQueue();
+            } catch (e) {
+                console.error('❌ Order save failed, queuing:', e);
+                const queue = getOfflineQueue();
+                queue.push({ shop, items, note: note || '', time: new Date().toISOString() });
+                saveOfflineQueue(queue);
+            }
+        }
+
+        // ─── SHOP MANAGEMENT ─────────────────────────────────────────────────        // ─── SHOP MANAGEMENT ─────────────────────────────────────────────────
         function getShops() { const r = localStorage.getItem('shops'); return r ? JSON.parse(r) : [...DEFAULT_SHOPS]; }
-        function saveShops(l) { localStorage.setItem('shops', JSON.stringify(l)); }
+        function saveShops(l) { localStorage.setItem('shops', JSON.stringify(l)); saveShopsToFirestore(l); }
         function getSelectedShop() { return selectedShop || getShops()[0] || ''; }
         function renderShopBtns() {
             const shops = getShops();
@@ -1789,11 +2426,11 @@
 
         // Custom names (renames): { originalName: displayName }
         function getCustomNames() { const r = localStorage.getItem('customNames'); return r ? JSON.parse(r) : {}; }
-        function saveCustomNames(m) { localStorage.setItem('customNames', JSON.stringify(m)); }
+        function saveCustomNames(m) { localStorage.setItem('customNames', JSON.stringify(m)); saveProductsToFirestore(); }
 
         // Custom added products: { left: [...], right: [...] }
         function getCustomProducts() { const r = localStorage.getItem('customProducts'); return r ? JSON.parse(r) : { left: [], right: [] }; }
-        function saveCustomProducts(p) { localStorage.setItem('customProducts', JSON.stringify(p)); }
+        function saveCustomProducts(p) { localStorage.setItem('customProducts', JSON.stringify(p)); saveProductsToFirestore(); }
 
         // Build active lists (default + custom added, with renames applied)
         function getLeftCol() {
@@ -1971,18 +2608,22 @@
             const raw = localStorage.getItem('orderHistory');
             const hist = raw ? JSON.parse(raw) : [];
             hist.unshift({ shop, items, note, time: new Date().toISOString(), id: Date.now() });
-            if (hist.length > 30) hist.pop();
+            if (hist.length > 200) hist.pop();
             localStorage.setItem('orderHistory', JSON.stringify(hist));
             updateHistBadge();
         }
         function updateHistBadge() {
-            const raw = localStorage.getItem('orderHistory');
-            const hist = raw ? JSON.parse(raw) : [];
-            document.getElementById('tab-history').textContent = hist.length > 0 ? `📦 Тарих (${hist.length})` : '📦 Тарих';
+            if (currentRole === 'manager') {
+                const cnt = _allOrdersCache.length;
+                document.getElementById('tab-history').textContent = cnt > 0 ? `📦 Тарих (${cnt})` : '📦 Тарих';
+            } else {
+                const raw = localStorage.getItem('orderHistory');
+                const hist = raw ? JSON.parse(raw) : [];
+                document.getElementById('tab-history').textContent = hist.length > 0 ? `📦 Тарих (${hist.length})` : '📦 Тарих';
+            }
         }
-        function renderHistory() {
-            const raw = localStorage.getItem('orderHistory');
-            const hist = raw ? JSON.parse(raw) : [];
+        // Shared renderer used by both worker (localStorage) and manager (Firestore)
+        function renderHistoryFromData(hist, isManager) {
             const container = document.getElementById('histList');
             if (hist.length === 0) {
                 container.innerHTML = `<div class="hist-empty" style="grid-column:1/-1">📭 Тарих бўш<br><small>Заказ юборганингиздан сўнг кўринади</small></div>`;
@@ -1994,41 +2635,96 @@
                 const lines = h.items.slice(0, 5).map(i => `${i.name}: <b>${i.q} ${i.u}</b>`).join('<br>');
                 const more = h.items.length > 5 ? `<br><i>…яна ${h.items.length - 5} та</i>` : '';
                 const noteHtml = h.note ? `<div class="hist-note">📝 ${h.note}</div>` : '';
+                const workerBadge = isManager && h.userName
+                    ? `<span style="background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">👷 ${h.userName}</span>` : '';
+                const statusMap = { new: ['🆕', '#fff3cd', '#856404', 'Янги'], accepted: ['✅', '#d1ecf1', '#0c5460', 'Қабул қилинди'], done: ['✔️', '#d4edda', '#155724', 'Бажарилди'] };
+                const st = statusMap[h.status] || statusMap['new'];
+                const statusBadge = `<span style="background:${st[1]};color:${st[2]};padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700">${st[0]} ${st[3]}</span>`;
+                const uid = h.id || h.firestoreId;
                 return `<div class="hist-card">
             <div class="hist-card-header">
                 <span class="hist-shop">🏪 ${h.shop}</span>
                 <span class="hist-count">${h.items.length} та</span>
             </div>
+            ${workerBadge ? `<div style="margin:4px 0">${workerBadge}</div>` : ''}
+            <div style="margin:4px 0">${statusBadge}</div>
             <div class="hist-date">🕐 ${ds}</div>
             ${noteHtml}
             <div class="hist-items" style="margin-top:6px">${lines}${more}</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
-                <button class="btn-load-hist" onclick="loadFromHistory(${h.id})">📋 Юклаш</button>
-                <button class="btn-change-shop" onclick="changeHistoryShop(${h.id})">🏪 Бозорни тузатиш</button>
-                <button class="btn-del-hist" onclick="deleteHistory(${h.id})">🗑 Ўчириш</button>
+                <button class="btn-load-hist" onclick="loadFromHistoryEntry(${JSON.stringify(h).replace(/"/g, '&quot;')})">📋 Юклаш</button>
+                ${!isManager ? `<button class="btn-change-shop" onclick="changeHistoryShop(${h.id})">🏪 Бозорни тузатиш</button>` : ''}
+                ${!isManager ? `<button class="btn-del-hist" onclick="deleteHistory(${h.id})">🗑 Ўчириш</button>` : ''}
             </div>
         </div>`;
             }).join('');
         }
-        function loadFromHistory(id) {
-            const hist = JSON.parse(localStorage.getItem('orderHistory'));
-            const entry = hist.find(h => h.id === id);
+        function renderHistory() {
+            if (currentRole === 'manager') {
+                renderManagerHistory(_allOrdersCache);
+                return;
+            }
+            // Worker: load from Firestore (own orders only)
+            subscribeWorkerOrders();
+        }
+
+        let _workerOrdersUnsub = null;
+        function subscribeWorkerOrders() {
+            if (!currentUser || !window._fb) return;
+            if (_workerOrdersUnsub) return; // already subscribed
+            const { db, collection, query, orderBy, where, onSnapshot } = fb();
+            const q = query(
+                collection(db, 'orders'),
+                where('uid', '==', currentUser.uid),
+                orderBy('time', 'desc')
+            );
+            _workerOrdersUnsub = onSnapshot(q, snap => {
+                const orders = snap.docs.map(d => ({ ...d.data(), firestoreId: d.id }));
+                // Sync to localStorage as offline cache
+                localStorage.setItem('orderHistory', JSON.stringify(
+                    orders.map(o => ({ ...o, id: o.id || Date.now() }))
+                ));
+                renderHistoryFromData(orders, false);
+                updateHistBadge();
+            }, err => {
+                // Fallback to localStorage if Firestore fails
+                const raw = localStorage.getItem('orderHistory');
+                const hist = raw ? JSON.parse(raw) : [];
+                renderHistoryFromData(hist, false);
+            });
+        }
+        function loadFromHistoryEntry(entry) {
+            if (typeof entry === 'string') entry = JSON.parse(entry);
             if (!entry || !confirm(`"${entry.shop}" заказини юклашни хоҳлайсизми?`)) return;
-            clearAll();
+            getAllItems().forEach(name => { const el = document.getElementById(`q-${name}`); if (el) el.value = ''; });
+            document.getElementById('orderNote').value = '';
+            updateTotals();
             selectedShop = entry.shop; renderShopBtns();
             if (entry.note) document.getElementById('orderNote').value = entry.note;
             entry.items.forEach(item => {
-                const q = document.getElementById(`q-${item.name}`);
-                const u = document.getElementById(`u-${item.name}`);
-                if (q) q.value = item.q;
-                if (u) u.value = item.u;
+                // Try matching by display name or original name
+                const allNames = getAllItems();
+                for (const name of allNames) {
+                    if (displayName(name) === item.name || name === item.name) {
+                        const q = document.getElementById(`q-${name}`);
+                        const u = document.getElementById(`u-${name}`);
+                        if (q) q.value = item.q;
+                        if (u) u.value = item.u;
+                        break;
+                    }
+                }
             });
             switchTab('order', document.getElementById('tab-order'));
             updateTotals();
         }
+        function loadFromHistory(id) {
+            const hist = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+            const entry = hist.find(h => h.id === id);
+            if (entry) loadFromHistoryEntry(entry);
+        }
         function deleteHistory(id) {
             if (!confirm('Ўчиришни тасдиқлайсизми?')) return;
-            let hist = JSON.parse(localStorage.getItem('orderHistory'));
+            let hist = JSON.parse(localStorage.getItem('orderHistory') || '[]');
             hist = hist.filter(h => h.id !== id);
             localStorage.setItem('orderHistory', JSON.stringify(hist));
             renderHistory(); updateHistBadge();
@@ -2208,6 +2904,7 @@
             if (name === 'fav') renderFavPage();
             if (name === 'weekly') renderWeekly();
             if (name === 'products') renderProductsEditor();
+            if (name === 'profile') renderProfile();
         }
 
         // ─── PRODUCTS EDITOR ─────────────────────────────────────────────────
@@ -2408,9 +3105,11 @@
                     const fd = new FormData();
                     fd.append('chat_id', CHAT_ID);
                     fd.append('photo', blob, 'order.png');
-                    fd.append('caption', `📝 Янги заказ: ${shop} | ${orderItems.length} та${note ? '\n💬 ' + note : ''}`);
+                    const workerTag = currentName ? `\n👷 ${currentName}` : '';
+                    fd.append('caption', `📝 Заказ: ${shop} | ${orderItems.length} та${note ? '\n💬 ' + note : ''}${workerTag}`);
                     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: fd });
                     saveToHistory(shop, orderItems, note);
+                    await saveOrderToFirestore(shop, orderItems, note);
                     localStorage.removeItem('draft');
                     alert('✅ Заказ юборилди!');
                     location.reload();
@@ -2667,10 +3366,105 @@
                 });
             }
         })();
+
+        // ─── PROFILE ──────────────────────────────────────────────────────────────
+        function renderProfile() {
+            const el = document.getElementById('profileContent');
+            if (!currentUser) { el.innerHTML = ''; return; }
+
+            // Gather stats from localStorage
+            const raw = localStorage.getItem('orderHistory');
+            const hist = raw ? JSON.parse(raw) : [];
+            const totalOrders = hist.length;
+            const shops = new Set(hist.map(h => h.shop)).size;
+            const thisWeek = hist.filter(h => {
+                if (!h.time) return false;
+                const d = new Date(h.time);
+                const now = new Date();
+                const day = now.getDay() || 7;
+                const mon = new Date(now); mon.setDate(now.getDate() - day + 1);
+                mon.setHours(0, 0, 0, 0);
+                return d >= mon;
+            }).length;
+
+            const roleLabel = currentRole === 'manager'
+                ? '<span style="background:#fff3cd;color:#856404;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700">👔 Менежер</span>'
+                : '<span style="background:#d1ecf1;color:#0c5460;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700">👷 Менежер</span>';
+
+            el.innerHTML = `
+            <div class="profile-card">
+                <div class="profile-avatar">👤</div>
+                <div class="profile-name">${currentName}</div>
+                <div class="profile-role">${roleLabel}</div>
+                <div class="profile-stats">
+                    <div class="profile-stat"><div class="n">${totalOrders}</div><div class="l">Жами заказ</div></div>
+                    <div class="profile-stat"><div class="n">${thisWeek}</div><div class="l">Бу ҳафта</div></div>
+                    <div class="profile-stat"><div class="n">${shops}</div><div class="l">Бозорлар</div></div>
+                </div>
+            </div>
+            <div class="profile-card">
+                <div class="profile-input-group">
+                    <label>ИСМНИ ЎЗГАРТИРИШ</label>
+                    <input class="profile-input" id="profileNameInput" type="text" value="${currentName}" placeholder="Исм фамилия">
+                </div>
+                <button class="profile-save-btn" onclick="saveProfileName()">💾 Сақлаш</button>
+            </div>
+            <div class="profile-card">
+                <div class="profile-input-group">
+                    <label>ПАРОЛНИ ЎЗГАРТИРИШ</label>
+                    <input class="profile-input" id="profilePassNew" type="password" placeholder="Янги парол (камида 6 та белги)">
+                </div>
+                <button class="profile-save-btn" onclick="saveProfilePass()">🔑 Паролни янгилаш</button>
+            </div>
+            <div class="profile-card">
+                <button class="profile-logout-btn" onclick="doLogout()">🚪 Тизимдан чиқиш</button>
+            </div>`;
+        }
+
+        async function saveProfileName() {
+            const name = document.getElementById('profileNameInput').value.trim();
+            if (!name) { alert('Исм бўш бўлмасин!'); return; }
+            try {
+                const { db, doc, setDoc } = fb();
+                await setDoc(doc(db, 'users', currentUser.uid), { name, role: currentRole }, { merge: true });
+                currentName = name;
+                document.getElementById('userBarName').textContent = '👤 ' + name;
+                alert('✅ Исм сақланди!');
+            } catch (e) { alert('Хатолик: ' + e.message); }
+        }
+
+        async function saveProfilePass() {
+            const pass = document.getElementById('profilePassNew').value;
+            if (pass.length < 6) { alert('Парол камида 6 та белги бўлиши керак!'); return; }
+            try {
+                const { updatePassword } = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
+                await updatePassword(currentUser, pass);
+                document.getElementById('profilePassNew').value = '';
+                alert('✅ Парол янгиланди!');
+            } catch (e) {
+                if (e.code === 'auth/requires-recent-login') {
+                    alert('⚠️ Паролни ўзгартириш учун қайта кириш керак. Чиқиб, қайта кириб кўринг.');
+                } else {
+                    alert('Хатолик: ' + e.message);
+                }
+            }
+        }
+
+        // ─── FIREBASE AUTH LISTENER ───────────────────────────────────────────
+        // Wait for Firebase module to load, then set up auth listener
+        function initFirebaseAuth() {
+            if (!window._fb) { setTimeout(initFirebaseAuth, 100); return; }
+            const { auth, onAuthStateChanged } = window._fb;
+            // Show auth screen immediately
+            document.getElementById('authScreen').classList.add('show');
+            onAuthStateChanged(auth, user => {
+                onUserLogin(user);
+            });
+        }
+        initFirebaseAuth();
+
+        // Initial local render (before login) — will be overwritten after auth
         selectedShop = getShops()[0] || '';
-        renderShopBtns();
-        renderList();
-        updateHistBadge();
     </script>
 </body>
 
