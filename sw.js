@@ -3,6 +3,7 @@ const CACHE_NAME = 'teegu-v4';
 const STATIC_ASSETS = [
   '/ZakazSalad/index.html',
   '/ZakazSalad/admin.html',
+  '/ZakazSalad/manifest-admin.json',
   '/ZakazSalad/manifest.json',
   '/ZakazSalad/app-icon.png',
   '/ZakazSalad/icon.png',

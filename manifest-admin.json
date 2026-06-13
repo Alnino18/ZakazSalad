@@ -1,0 +1,34 @@
+{
+  "name": "TeeGu Admin",
+  "short_name": "Admin",
+  "description": "TeeGu заказлар бошқаруви",
+  "start_url": "/ZakazSalad/admin.html",
+  "scope": "/ZakazSalad/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "lang": "uz",
+  "categories": ["business"],
+  "icons": [
+    {
+      "src": "app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Барча заказлар",
+      "url": "/ZakazSalad/admin.html",
+      "icons": [{ "src": "app-icon.png", "sizes": "512x512" }]
+    }
+  ]
+}
