@@ -1,7 +1,8 @@
-// TeeGu zakaz — Service Worker v2
-const CACHE_NAME = 'teegu-v2';
+// TeeGu zakaz — Service Worker v3
+const CACHE_NAME = 'teegu-v3';
 const STATIC_ASSETS = [
   '/ZakazSalad/index.html',
+  '/ZakazSalad/admin.html',
   '/ZakazSalad/manifest.json',
   '/ZakazSalad/app-icon.png',
   '/ZakazSalad/icon.png',
@@ -32,12 +33,15 @@ self.addEventListener('activate', e => {
   );
 });
 
-// ── Fetch: Cache First for static, Network First for API ──────────────
+// ── Fetch ──────────────────────────────────────────────────────────────
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Telegram API — network only, no cache
-  if (url.hostname === 'api.telegram.org') {
+  // Telegram API, Firebase — network only, no cache
+  if (url.hostname === 'api.telegram.org' ||
+      url.hostname.includes('firebase') ||
+      url.hostname.includes('firestore') ||
+      url.hostname.includes('googleapis')) {
     return; // pass through
   }
 
@@ -53,20 +57,23 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Local files — cache first, fallback to network, fallback to offline page
+  // Local files — network first, fallback to cache
   if (url.origin === self.location.origin) {
     e.respondWith(
-      caches.match(e.request).then(cached => {
-        if (cached) return cached;
-        return fetch(e.request).then(res => {
-          if (res.ok) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-          }
-          return res;
-        }).catch(() => {
-          // Offline fallback
-          if (e.request.destination === 'document') {
+      fetch(e.request).then(res => {
+        // Update cache with fresh response
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => {
+        // Offline: return exact cached file
+        return caches.match(e.request).then(cached => {
+          if (cached) return cached;
+          // Only fallback to index.html for unknown pages, NOT for admin.html
+          if (e.request.destination === 'document' &&
+              !url.pathname.includes('admin')) {
             return caches.match('/ZakazSalad/index.html');
           }
         });
@@ -75,7 +82,7 @@ self.addEventListener('fetch', e => {
   }
 });
 
-// ── Background sync placeholder ────────────────────────────────────────
+// ── Message ────────────────────────────────────────────────────────────
 self.addEventListener('message', e => {
   if (e.data === 'skipWaiting') self.skipWaiting();
 });
