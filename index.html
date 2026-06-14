@@ -2935,7 +2935,7 @@
                     fd.append('chat_id', CHAT_ID);
                     fd.append('photo', blob, 'order.png');
                     const workerTag = currentName ? `\n👷 ${currentName}` : '';
-                    fd.append('caption', `📝 Янги заказ: ${shop} | ${orderItems.length} та${note ? '\n💬 ' + note : ''}${workerTag}`);
+                    fd.append('caption', `📝 Заказ: ${shop} | ${orderItems.length} та${note ? '\n💬 ' + note : ''}${workerTag}`);
                     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: fd });
                     saveToHistory(shop, orderItems, note);
                     await saveOrderToFirestore(shop, orderItems, note);
