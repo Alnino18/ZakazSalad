@@ -1560,6 +1560,10 @@
             font-weight: 900;
         }
 
+        .col-val-red {
+            color: #FF0000 !important;
+        }
+
         .section-title-pdf {
             text-align: center;
             background: #e0e0e0;
@@ -1940,7 +1944,7 @@
 
     <script>
         const BOT_TOKEN = '8691293032:AAGikZsTLffxhHo3_RVCRK3Ol7--oXPIaF8';
-        const CHAT_ID = '483325961';
+        const CHAT_ID = '-1002679650664';
         const DEFAULT_SHOPS = ["АСКИЯ БОЗОР", "ЭКО БОЗОР", "СЕРГИЛИ БОЗОР", "СЕРГИЛИ ЯРМАРКА"];
         let selectedShop = '';
 
@@ -2284,6 +2288,10 @@
             return [...getLeftCol(), ...getRightCol().filter(i => !i.title)];
         }
 
+        const RED_ITEMS = new Set(["Тиби", "Капуста кимчи", "Солёные ассорти", "Солёные огурцы", "Солёные памидор", "Чимчи", "Пигодя крахмальные", "Пигодя рисовый"]);
+        function isRedItem(name) {
+            return RED_ITEMS.has(name) || name.startsWith("Пигодя");
+        }
         const SHT_ONLY = new Set(["Тиби", "Горчица", "Лозижон", "Маченка", "Нори Большой", "Нори Маленький", "Пигодя крахмальные", "Пигодя рисовый", "Спаржа сухая", "Кукси", "Тирой", "Борсик йоги", "Гоз йоги", "Тяй жареный", "Тяй", "Фунчоза сухая", "Чартоги"]);
         function getFavs() { const r = localStorage.getItem('favs'); return r ? JSON.parse(r) : []; }
         function saveFavs(f) { localStorage.setItem('favs', JSON.stringify(f)); }
@@ -2652,7 +2660,8 @@
                 const label = displayName(name);
                 const found = entry.items.find(i => i.name === label || i.name === name);
                 const val = found ? `${found.q} ${found.u}` : '';
-                leftBody.innerHTML += `<tr><td class="col-name">${label}</td><td class="col-val">${val}</td></tr>`;
+                const valClass = isRedItem(name) ? 'col-val col-val-red' : 'col-val';
+                leftBody.innerHTML += `<tr><td class="col-name">${label}</td><td class="${valClass}">${val}</td></tr>`;
             });
             getRightCol().forEach(item => {
                 if (item.title) {
@@ -2661,7 +2670,8 @@
                     const label = displayName(item);
                     const found = entry.items.find(i => i.name === label || i.name === item);
                     const val = found ? `${found.q} ${found.u}` : '';
-                    rightBody.innerHTML += `<tr><td class="col-name">${label}</td><td class="col-val">${val}</td></tr>`;
+                    const valClass = isRedItem(item) ? 'col-val col-val-red' : 'col-val';
+                    rightBody.innerHTML += `<tr><td class="col-name">${label}</td><td class="${valClass}">${val}</td></tr>`;
                 }
             });
 
@@ -2905,7 +2915,8 @@
                 const label = displayName(name);
                 const val = (q > 0) ? `${q} ${u}` : '';
                 if (q > 0) { hasOrder = true; orderItems.push({ name: label, q, u }); }
-                leftBody.innerHTML += `<tr><td class="col-name">${label}</td><td class="col-val">${val}</td></tr>`;
+                const valClass = isRedItem(name) ? 'col-val col-val-red' : 'col-val';
+                leftBody.innerHTML += `<tr><td class="col-name">${label}</td><td class="${valClass}">${val}</td></tr>`;
             });
             getRightCol().forEach(item => {
                 if (item.title) {
@@ -2916,7 +2927,8 @@
                     const label = displayName(item);
                     const val = (q > 0) ? `${q} ${u}` : '';
                     if (q > 0) { hasOrder = true; orderItems.push({ name: label, q, u }); }
-                    rightBody.innerHTML += `<tr><td class="col-name">${label}</td><td class="col-val">${val}</td></tr>`;
+                    const valClass = isRedItem(item) ? 'col-val col-val-red' : 'col-val';
+                    rightBody.innerHTML += `<tr><td class="col-name">${label}</td><td class="${valClass}">${val}</td></tr>`;
                 }
             });
 

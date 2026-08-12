@@ -1,5 +1,5 @@
 // TeeGu zakaz — Service Worker v7 (mobile optimized)
-const CACHE_NAME = 'teegu-v7';
+const CACHE_NAME = 'teegu-v8';
 const STATIC_ASSETS = [
   '/ZakazSalad/index.html',
   '/ZakazSalad/admin.html',
